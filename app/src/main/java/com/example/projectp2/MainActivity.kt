@@ -10,7 +10,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.projectp2.data.AppViewModel
-import com.example.projectp2.ui.MainScreen
+import com.example.projectp2.ui.HomeScreen
 import com.example.projectp2.ui.OnboardingScreen
 import com.example.projectp2.ui.SplashScreen
 
@@ -30,6 +30,6 @@ fun AppNavigation() {
     NavHost(navController, startDestination = "main") {
         composable("splash") { SplashScreen(navController) }
         composable("onboarding") { OnboardingScreen(navController) }
-        composable("main") { MainScreen(appViewModel, navController) }
+        composable("main") { HomeScreen(appViewModel, navController) }
     }
 }

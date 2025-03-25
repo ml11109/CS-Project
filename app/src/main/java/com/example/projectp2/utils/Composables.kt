@@ -60,7 +60,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.projectp2.data.AppViewModel
-import com.example.projectp2.ui.MainScreen
+import com.example.projectp2.ui.HomeScreen
 import com.example.projectp2.ui.theme.ProjectP2Theme
 import kotlin.math.round
 
@@ -290,9 +290,9 @@ fun TabScreen(viewModel: AppViewModel, navController: NavController) {
 
         when (tabIndex) {
             // Add screens as needed
-            0 -> MainScreen(viewModel, navController)
-            1 -> MainScreen(viewModel, navController)
-            2 -> MainScreen(viewModel, navController)
+            0 -> HomeScreen(viewModel, navController)
+            1 -> HomeScreen(viewModel, navController)
+            2 -> HomeScreen(viewModel, navController)
         }
     }
 }

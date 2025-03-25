@@ -4,13 +4,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
 import com.example.projectp2.data.AppViewModel
-import com.example.projectp2.utils.ToolbarScaffold
+import com.example.projectp2.utils.CollapsingToolbarScaffold
 
 @Composable
-fun MainScreen(appViewModel: AppViewModel, navController: NavController) {
+fun HomeScreen(appViewModel: AppViewModel, navController: NavController) {
     val context = LocalContext.current
 
-    ToolbarScaffold("ICA 2") {
+    CollapsingToolbarScaffold("CS Project") {
         // Content
     }
 }
