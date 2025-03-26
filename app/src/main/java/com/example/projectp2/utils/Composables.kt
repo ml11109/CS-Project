@@ -59,7 +59,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.projectp2.data.AppViewModel
+import com.example.projectp2.model.UserDataViewModel
 import com.example.projectp2.ui.HomeScreen
 import com.example.projectp2.ui.theme.ProjectP2Theme
 import kotlin.math.round
@@ -276,7 +276,7 @@ TabScreen(viewModel, navController)
  */
 
 @Composable
-fun TabScreen(viewModel: AppViewModel, navController: NavController) {
+fun TabScreen(viewModel: UserDataViewModel, navController: NavController) {
     // Add tabs as needed
     val tabs = arrayOf("Tab 1", "Tab 2", "Tab 3")
     val tabIcons = listOf(Icons.AutoMirrored.Filled.List, Icons.Default.Info, Icons.Default.Person)

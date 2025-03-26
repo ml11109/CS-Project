@@ -8,14 +8,17 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -30,12 +33,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.projectp2.data.AppViewModel
+import com.example.projectp2.model.UserDataViewModel
 import com.example.projectp2.ui.HomeScreen
 import com.example.projectp2.ui.InfoScreen
 import com.example.projectp2.ui.HabitsScreen
@@ -56,23 +60,23 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun AppNavigation() {
-    val appViewModel: AppViewModel = viewModel()
+    val userDataViewModel: UserDataViewModel = viewModel()
     val navController = rememberNavController()
 
     NavHost(navController, startDestination = "home") {
         composable("splash") { SplashScreen(navController) }
         composable("onboarding") { OnboardingScreen(navController) }
-        composable("home") { HomeScreen(appViewModel, navController) }
-        composable("habits") { HabitsScreen(appViewModel, navController) }
+        composable("home") { HomeScreen(userDataViewModel, navController) }
+        composable("habits") { HabitsScreen(userDataViewModel, navController) }
 
         composable("details/{habitId}") { backStackEntry ->
             val habitId = backStackEntry.arguments?.getString("habitId")
-            DetailsScreen(appViewModel, navController, appViewModel.getHabitFromId(habitId!!.toInt()))
+            DetailsScreen(userDataViewModel, navController, userDataViewModel.getHabitFromId(habitId!!.toInt()))
         }
 
-        composable("stats") { StatsScreen(appViewModel, navController) }
-        composable("info") { InfoScreen(appViewModel, navController) }
-        composable("settings") { SettingsScreen(appViewModel, navController) }
+        composable("stats") { StatsScreen(userDataViewModel, navController) }
+        composable("info") { InfoScreen(userDataViewModel, navController) }
+        composable("settings") { SettingsScreen(userDataViewModel, navController) }
     }
 }
 
@@ -151,5 +155,17 @@ fun MenuItems(navController: NavController) {
         ) {
             Icon(Icons.Default.Settings, "Settings", tint = MaterialTheme.colorScheme.onPrimary)
         }
+    }
+}
+
+@Composable
+fun AddNewFAB(navController: NavController) {
+    FloatingActionButton(
+        onClick = { navController.navigate("details/0") },
+        containerColor = MaterialTheme.colorScheme.primary,
+        contentColor = MaterialTheme.colorScheme.onPrimary,
+        shape = RoundedCornerShape(50)
+    ) {
+        Icon(Icons.Default.Add, contentDescription = "Add", modifier = Modifier.size(24.dp))
     }
 }

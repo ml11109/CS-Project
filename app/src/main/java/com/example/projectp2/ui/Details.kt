@@ -2,10 +2,10 @@ package com.example.projectp2.ui
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
-import com.example.projectp2.data.AppViewModel
-import com.example.projectp2.data.Habit
+import com.example.projectp2.model.UserDataViewModel
+import com.example.projectp2.model.Habit
 
 @Composable
-fun DetailsScreen(appViewModel: AppViewModel, navController: NavController, habit: Habit = Habit.getEmpty()) {
+fun DetailsScreen(userDataViewModel: UserDataViewModel, navController: NavController, habit: Habit = Habit()) {
 
 }

@@ -5,22 +5,27 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.projectp2.AddNewFAB
 import com.example.projectp2.AppScaffold
-import com.example.projectp2.data.AppViewModel
-import com.example.projectp2.data.Task
+import com.example.projectp2.model.UserDataViewModel
+import com.example.projectp2.model.Task
 
 @Composable
-fun HomeScreen(appViewModel: AppViewModel, navController: NavController) {
+fun HomeScreen(userDataViewModel: UserDataViewModel, navController: NavController) {
     AppScaffold(
         title = "CS Project",
         navController = navController,
@@ -32,22 +37,21 @@ fun HomeScreen(appViewModel: AppViewModel, navController: NavController) {
                 .padding(16.dp)
                 .nestedScroll(nestedScrollConnection)
         ) {
-            InfoBar(appViewModel, Modifier.fillMaxWidth().height(50.dp))
+            InfoBar(userDataViewModel, Modifier.fillMaxWidth().height(50.dp))
             Spacer(Modifier.height(16.dp))
 
-            MiniStatsScreen(
-                appViewModel,
+            MiniScreen(
+                userDataViewModel,
                 Modifier
                     .fillMaxWidth()
-                    .weight(0.35f)
+                    .weight(0.4f)
                     .background(MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(8.dp))
-                    .padding(12.dp)
             )
             Spacer(Modifier.height(12.dp))
 
-            Row(modifier = Modifier.fillMaxWidth().weight(0.65f)) {
+            Row(modifier = Modifier.fillMaxWidth().weight(0.6f)) {
                 TaskList(
-                    "Ongoing", appViewModel.getOngoingTasks(), navController,
+                    "Ongoing", userDataViewModel.getOngoingTasks(), navController,
                     Modifier
                         .fillMaxHeight()
                         .weight(1f)
@@ -55,7 +59,7 @@ fun HomeScreen(appViewModel: AppViewModel, navController: NavController) {
                 )
                 Spacer(Modifier.width(12.dp))
                 TaskList(
-                    "Upcoming", appViewModel.getUpcomingTasks(), navController,
+                    "Upcoming", userDataViewModel.getUpcomingTasks(), navController,
                     Modifier
                         .fillMaxHeight()
                         .weight(1f)
@@ -67,19 +71,7 @@ fun HomeScreen(appViewModel: AppViewModel, navController: NavController) {
 }
 
 @Composable
-fun AddNewFAB(navController: NavController) {
-    FloatingActionButton(
-        onClick = { navController.navigate("details/0") },
-        containerColor = MaterialTheme.colorScheme.primary,
-        contentColor = MaterialTheme.colorScheme.onPrimary,
-        shape = RoundedCornerShape(50)
-    ) {
-        Icon(Icons.Default.Add, contentDescription = "Add", modifier = Modifier.size(24.dp))
-    }
-}
-
-@Composable
-fun InfoBar(appViewModel: AppViewModel, modifier: Modifier = Modifier) {
+fun InfoBar(userDataViewModel: UserDataViewModel, modifier: Modifier = Modifier) {
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(12.dp),
@@ -90,10 +82,40 @@ fun InfoBar(appViewModel: AppViewModel, modifier: Modifier = Modifier) {
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "Welcome back!", // Placeholder text
+                text = "Welcome back!", // TODO: Add info text
                 style = MaterialTheme.typography.titleMedium,
                 textAlign = TextAlign.Center
             )
+        }
+    }
+}
+
+@Composable
+fun MiniScreen(userDataViewModel: UserDataViewModel, modifier: Modifier = Modifier) {
+    var screenNum by remember { mutableIntStateOf(0) }
+
+    Box(
+        modifier = modifier
+    ) {
+        val screenModifier = Modifier.fillMaxSize().padding(16.dp)
+        when (screenNum) {
+            0 -> MiniHabitsScreen(userDataViewModel, screenModifier)
+            1 -> MiniStatsScreen(userDataViewModel, screenModifier)
+            2 -> MiniAchievementsScreen(userDataViewModel, screenModifier)
+        }
+
+        IconButton(
+            onClick = { screenNum = (screenNum + 1) % 3 },
+            modifier = Modifier.align(Alignment.CenterEnd)
+        ) {
+            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Next")
+        }
+
+        IconButton(
+            onClick = { screenNum = (screenNum + 2) % 3 },
+            modifier = Modifier.align(Alignment.CenterStart)
+        ) {
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Previous")
         }
     }
 }

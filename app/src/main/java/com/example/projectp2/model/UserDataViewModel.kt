@@ -1,8 +1,8 @@
-package com.example.projectp2.data
+package com.example.projectp2.model
 
 import androidx.lifecycle.ViewModel
 
-class AppViewModel : ViewModel() {
+class UserDataViewModel : ViewModel() {
     var habits = mutableListOf<Habit>()
 
     fun getOngoingTasks(): ArrayList<Task> {
@@ -14,10 +14,11 @@ class AppViewModel : ViewModel() {
     }
 
     fun getHabitFromId(index: Int): Habit {
+        // TODO: Get habit from id
         return if (index == 0) {
-            Habit.getEmpty()
+            Habit()
         } else {
-            Habit.getEmpty() // TODO
+            Habit()
         }
     }
 }
