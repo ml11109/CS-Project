@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Settings
@@ -30,7 +29,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
@@ -65,7 +63,12 @@ fun AppNavigation() {
         composable("onboarding") { OnboardingScreen(navController) }
         composable("home") { HomeScreen(appViewModel, navController) }
         composable("habits") { HabitsScreen(appViewModel, navController) }
-        composable("details") { DetailsScreen(appViewModel, navController) }
+
+        composable("details/{habitId}") { backStackEntry ->
+            val habitId = backStackEntry.arguments?.getString("habitId")
+            DetailsScreen(appViewModel, navController, appViewModel.getHabitFromId(habitId!!.toInt()))
+        }
+
         composable("stats") { StatsScreen(appViewModel, navController) }
         composable("info") { InfoScreen(appViewModel, navController) }
         composable("settings") { SettingsScreen(appViewModel, navController) }
