@@ -105,6 +105,7 @@ fun CollapsingToolbarScaffold(
     navController: NavController? = null,
     showDropdownMenu: Boolean = false,
     menuItems: @Composable () -> Unit = {},
+    dropdownMenuItems: @Composable () -> Unit = {},
     floatingActionButton: @Composable () -> Unit = {},
     content: @Composable (nestedScrollConnection: NestedScrollConnection) -> Unit
 ) {
@@ -141,18 +142,20 @@ fun CollapsingToolbarScaffold(
                     },
 
                     actions = {
-                        if (!showDropdownMenu) return@TopAppBar
-
-                        Row {
-                            IconButton(onClick = { menuExpanded = true }) {
-                                Icon(Icons.Default.MoreVert, "More", tint = MaterialTheme.colorScheme.onPrimary)
-                            }
-
-                            DropdownMenu(
-                                expanded = menuExpanded,
-                                onDismissRequest = { menuExpanded = false }
-                            ) {
+                        if (showDropdownMenu) {
+                            Row {
                                 menuItems()
+
+                                IconButton(onClick = { menuExpanded = true }) {
+                                    Icon(Icons.Default.MoreVert, "More", tint = MaterialTheme.colorScheme.onPrimary)
+                                }
+
+                                DropdownMenu(
+                                    expanded = menuExpanded,
+                                    onDismissRequest = { menuExpanded = false }
+                                ) {
+                                    dropdownMenuItems()
+                                }
                             }
                         }
                     },
@@ -179,15 +182,15 @@ ToolbarScaffold("Title") {
 // For back button, showBackButton = true and pass in navController, eg:
 ToolbarScaffold("Title", showBackButton = true, navController = navController)
 
-// For dropdown menu, showDropdownMenu = true and pass in menuItems, eg:
+// For dropdown menu, showDropdownMenu = true and pass in dropdownMenuItems, eg:
 @Composable
-fun menuItems() {
+fun dropdownMenuItems() {
     DropdownMenuItem(text = { Text("Item 1") }, onClick = { /* Handle click */ })
     DropdownMenuItem(text = { Text("Item 2") }, onClick = { /* Handle click */ })
 }
 ToolbarScaffold("Title", showDropdownMenu = true, menuItems = { menuItems() })
 
-// Can also set showAppBar to false or pass in floatingActionButton
+// Can also set showAppBar to false, pass in floatingActionButton, or pass in other menuItems
  */
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -199,6 +202,7 @@ fun ToolbarScaffold(
     navController: NavController? = null,
     showDropdownMenu: Boolean = false,
     menuItems: @Composable () -> Unit = {},
+    dropdownMenuItems: @Composable () -> Unit = {},
     floatingActionButton: @Composable () -> Unit = {},
     content: @Composable () -> Unit
 ) {
@@ -234,18 +238,20 @@ fun ToolbarScaffold(
                     },
 
                     actions = {
-                        if (!showDropdownMenu) return@TopAppBar
-
-                        Row {
-                            IconButton(onClick = { menuExpanded = true }) {
-                                Icon(Icons.Default.MoreVert, "More", tint = MaterialTheme.colorScheme.onPrimary)
-                            }
-
-                            DropdownMenu(
-                                expanded = menuExpanded,
-                                onDismissRequest = { menuExpanded = false }
-                            ) {
+                        if (showDropdownMenu) {
+                            Row {
                                 menuItems()
+
+                                IconButton(onClick = { menuExpanded = true }) {
+                                    Icon(Icons.Default.MoreVert, "More", tint = MaterialTheme.colorScheme.onPrimary)
+                                }
+
+                                DropdownMenu(
+                                    expanded = menuExpanded,
+                                    onDismissRequest = { menuExpanded = false }
+                                ) {
+                                    dropdownMenuItems()
+                                }
                             }
                         }
                     },

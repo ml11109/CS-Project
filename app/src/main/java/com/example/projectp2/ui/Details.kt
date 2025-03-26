@@ -5,6 +5,6 @@ import androidx.navigation.NavController
 import com.example.projectp2.data.AppViewModel
 
 @Composable
-fun DetailsScreen(navController: NavController, appViewModel: AppViewModel) {
+fun DetailsScreen(appViewModel: AppViewModel, navController: NavController) {
 
 }
