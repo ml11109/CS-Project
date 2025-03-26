@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.DropdownMenu
@@ -100,7 +101,7 @@ fun AppScaffold(
 
                     navigationIcon = {
                         IconButton(onClick = { menuExpanded = true }) {
-                            Icon(Icons.Default.MoreVert, "More", tint = MaterialTheme.colorScheme.onPrimary)
+                            Icon(Icons.Default.Menu, "More", tint = MaterialTheme.colorScheme.onPrimary)
                         }
 
                         DropdownMenu(
