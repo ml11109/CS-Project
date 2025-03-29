@@ -40,6 +40,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.projectp2.model.UserDataViewModel
+import com.example.projectp2.ui.AchievementsScreen
 import com.example.projectp2.ui.HomeScreen
 import com.example.projectp2.ui.InfoScreen
 import com.example.projectp2.ui.HabitsScreen
@@ -75,6 +76,7 @@ fun AppNavigation() {
         }
 
         composable("stats") { StatsScreen(userDataViewModel, navController) }
+        composable("achievements") { AchievementsScreen(userDataViewModel, navController) }
         composable("info") { InfoScreen(userDataViewModel, navController) }
         composable("settings") { SettingsScreen(userDataViewModel, navController) }
     }

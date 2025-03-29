@@ -1,0 +1,28 @@
+todo:
+- Create home page layout /
+- Create habits page layout
+- Create details page layout
+- Create stats page layout
+- Create achievements page layout
+
+- Basic habit creation
+- Habit display and filtering
+- Calendar habit display
+- Mini habit display on home page
+- Task display on home page
+- More advanced habit creation options
+- Habit creation templates
+
+- Stats graph and filtering
+- Habit stats list
+- Mini stats display on home page
+
+- Achievement display and filtering
+- Mini achievement display on home page
+- Come up with and implement achievements
+
+- Come up with name
+- Create info page
+- Create settings page
+- Create onboarding page
+- Create splash screen
