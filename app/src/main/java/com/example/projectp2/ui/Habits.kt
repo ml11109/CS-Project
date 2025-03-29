@@ -20,13 +20,13 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.projectp2.composables.DropdownTextBox
 import com.example.projectp2.AddNewFAB
 import com.example.projectp2.AppScaffold
 import com.example.projectp2.model.FilterViewModel
 import com.example.projectp2.model.Habit
 import com.example.projectp2.model.Task
 import com.example.projectp2.model.UserDataViewModel
-import com.example.projectp2.utils.DropdownTextBox
 
 @Composable
 fun HabitsScreen(userDataViewModel: UserDataViewModel, navController: NavController) {

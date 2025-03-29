@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.projectp2.R
-import com.example.projectp2.utils.PagerScreen
+import com.example.projectp2.composables.PagerScreen
 
 @Composable
 fun OnboardingScreen(navController: NavController) {
