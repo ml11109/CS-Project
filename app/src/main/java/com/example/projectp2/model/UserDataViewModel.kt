@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 
 class UserDataViewModel : ViewModel() {
     var habits = mutableListOf<Habit>()
+    val categories = mutableListOf("Work", "Personal", "Health")
+    val frequencyTypes = mutableListOf("Daily", "Weekly", "Monthly")
 
     fun getOngoingTasks(): ArrayList<Task> {
         return ArrayList()

@@ -7,10 +7,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
@@ -26,10 +28,14 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
@@ -54,6 +60,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
@@ -306,18 +313,20 @@ fun TabScreen(viewModel: UserDataViewModel, navController: NavController) {
 
 /*
 // HorizontalPager with indicator
-PagerScreen(arrayOf<@Composable (Any) -> Unit>(
-    { Page1() },
-    { Page2(navController) },
-    // Add more pages here
-))
+PagerScreen(3) { page ->
+    when (page) {
+        0 -> { Page1() }
+        1 -> { Page2() }
+        2 -> { Page3(navController) }
+    }
+}
 // And then define each page individually (see Onboarding.kt)
  */
 
 @Composable
-fun PagerScreen(pages: Array<@Composable (Any) -> Unit>) {
-    val pagerState = rememberPagerState(pageCount = { pages.size })
-    HorizontalPager(state = pagerState) { pages[it] }
+fun PagerScreen(numPages: Int, getPage: @Composable (Int) -> Unit) {
+    val pagerState = rememberPagerState(pageCount = { numPages })
+    HorizontalPager(state = pagerState) { page -> getPage(page) }
     PageIndicator(pagerState)
 }
 
@@ -511,5 +520,102 @@ private class FractionalClipShape(private val fraction: Float) : Shape {
                 bottom = size.height
             )
         )
+    }
+}
+
+
+/*
+// Dropdown menu that displays a list of text options
+
+DropdownTextField(listOf("Option 1", "Option 2", "Option 3"))
+
+DropdownTextBox(
+    listOf("Option 1", "Option 2", "Option 3"),
+    modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(4.dp)),
+)
+
+DropdownSelector(listOf("Option 1", "Option 2", "Option 3")) { selectedText, expanded, contentModifier ->
+    // Custom display
+}
+ */
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DropdownSelector(
+    options: List<String>,
+    modifier: Modifier = Modifier,
+    initialOption: String = "Select an option",
+    content: @Composable (selectedText: String, expanded: Boolean, modifier: Modifier) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    var selectedText by remember { mutableStateOf(initialOption) }
+
+    ExposedDropdownMenuBox(
+        modifier = modifier,
+        expanded = expanded,
+        onExpandedChange = { expanded = it }
+    ) {
+        content(selectedText, expanded, Modifier.menuAnchor())
+
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            options.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(option) },
+                    onClick = {
+                        selectedText = option
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DropdownTextField(
+    options: List<String>,
+    modifier: Modifier = Modifier,
+    textStyle: TextStyle = TextStyle.Default,
+    initialOption: String = "Select an option"
+) {
+    DropdownSelector(options, modifier, initialOption) { selectedText, expanded, contentModifier ->
+        OutlinedTextField(
+            value = selectedText,
+            onValueChange = {},
+            readOnly = true,
+            textStyle = textStyle,
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            modifier = contentModifier
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DropdownTextBox(
+    options: List<String>,
+    modifier: Modifier = Modifier,
+    textStyle: TextStyle = TextStyle.Default,
+    initialOption: String = "Select an option"
+) {
+    DropdownSelector(options, modifier, initialOption) { selectedText, expanded, contentModifier ->
+        Row(
+            modifier = contentModifier.padding(4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Spacer(Modifier.width(4.dp))
+            Text(
+                text = selectedText,
+                style = textStyle
+            )
+            Spacer(Modifier.weight(1f))
+            ExposedDropdownMenuDefaults.TrailingIcon(
+                expanded = expanded
+            )
+        }
     }
 }
