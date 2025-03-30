@@ -64,7 +64,7 @@ fun AppNavigation() {
     val userDataViewModel: UserDataViewModel = viewModel()
     val navController = rememberNavController()
 
-    NavHost(navController, startDestination = "home") {
+    NavHost(navController, startDestination = "habits") {
         composable("splash") { SplashScreen(navController) }
         composable("onboarding") { OnboardingScreen(navController) }
         composable("home") { HomeScreen(userDataViewModel, navController) }

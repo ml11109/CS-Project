@@ -3,7 +3,9 @@ package com.example.projectp2.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
@@ -36,6 +38,7 @@ fun HomeScreen(userDataViewModel: UserDataViewModel, navController: NavControlle
                 .fillMaxSize()
                 .padding(16.dp)
                 .nestedScroll(nestedScrollConnection)
+                .verticalScroll(rememberScrollState())
         ) {
             InfoBar(userDataViewModel, Modifier.fillMaxWidth().height(50.dp))
             Spacer(Modifier.height(16.dp))

@@ -2,6 +2,7 @@ package com.example.projectp2.composables
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.DropdownMenuItem
@@ -85,7 +86,7 @@ fun DropdownTextField(
             readOnly = true,
             textStyle = textStyle,
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            modifier = contentModifier
+            modifier = contentModifier.fillMaxSize()
         )
     }
 }
@@ -100,7 +101,7 @@ fun DropdownTextBox(
 ) {
     DropdownSelector(options, modifier, initialOption) { selectedText, expanded, contentModifier ->
         Row(
-            modifier = contentModifier.padding(4.dp),
+            modifier = contentModifier.fillMaxSize().padding(4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Spacer(Modifier.width(4.dp))

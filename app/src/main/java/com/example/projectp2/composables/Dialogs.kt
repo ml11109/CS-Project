@@ -94,10 +94,11 @@ DeadlineDatePicker(calendar) { _, year, month, day ->
  */
 
 @Composable
-fun DatePickerButton(calendar: Calendar, onDateSelect: (DatePicker, Int, Int, Int) -> Unit) {
+fun DatePickerButton(calendar: Calendar, modifier: Modifier = Modifier, onDateSelect: (DatePicker, Int, Int, Int) -> Unit) {
     val context = LocalContext.current
 
     IconButton(
+        modifier = modifier,
         onClick = {
             DatePickerDialog(
                 context,
