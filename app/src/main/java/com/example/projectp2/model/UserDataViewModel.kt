@@ -3,7 +3,7 @@ package com.example.projectp2.model
 import androidx.lifecycle.ViewModel
 
 class UserDataViewModel : ViewModel() {
-    var habits = mutableListOf<Habit>()
+    var habits = mutableListOf<Habit>().plus(MutableList(10) { Habit() }) as MutableList // Temp
     val categories = mutableListOf("Work", "Personal", "Health")
     val frequencyTypes = mutableListOf("Daily", "Weekly", "Monthly")
 

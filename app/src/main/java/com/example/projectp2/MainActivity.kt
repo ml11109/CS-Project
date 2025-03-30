@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -15,6 +16,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -23,9 +25,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,6 +44,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.get
 import com.example.projectp2.model.UserDataViewModel
 import com.example.projectp2.ui.AchievementsScreen
 import com.example.projectp2.ui.HomeScreen
@@ -55,7 +61,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContent { AppNavigation() }
+        setContent { ProjectP2Theme { AppNavigation() } }
     }
 }
 
@@ -93,54 +99,60 @@ fun AppScaffold(
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     var menuExpanded by remember { mutableStateOf(false) }
 
-    ProjectP2Theme {
-        Scaffold(
-            modifier = Modifier.background(MaterialTheme.colorScheme.background),
+    Scaffold(
+        modifier = Modifier.background(MaterialTheme.colorScheme.background),
 
-            floatingActionButton = floatingActionButton,
+        floatingActionButton = floatingActionButton,
 
-            topBar = {
-                TopAppBar(
-                    title = {
-                        Text(title, color = MaterialTheme.colorScheme.onPrimary)
-                    },
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(title, color = MaterialTheme.colorScheme.onPrimary)
+                },
 
-                    navigationIcon = {
-                        IconButton(onClick = { menuExpanded = true }) {
-                            Icon(Icons.Default.Menu, "More", tint = MaterialTheme.colorScheme.onPrimary)
-                        }
+                navigationIcon = {
+                    IconButton(onClick = { menuExpanded = true }) {
+                        Icon(Icons.Default.Menu, "More", tint = MaterialTheme.colorScheme.onPrimary)
+                    }
 
-                        DropdownMenu(
-                            expanded = menuExpanded,
-                            onDismissRequest = { menuExpanded = false }
-                        ) { DropdownMenuItems(navController) }
-                    },
+                    DropdownMenu(
+                        expanded = menuExpanded,
+                        onDismissRequest = { menuExpanded = false }
+                    ) {
+                        DropdownMenuItems(navController) { menuExpanded = false }
+                    }
+                },
 
-                    actions = { MenuItems(navController) },
+                actions = { MenuItems(navController) },
 
-                    colors = TopAppBarDefaults.topAppBarColors(MaterialTheme.colorScheme.primary),
+                colors = TopAppBarDefaults.topAppBarColors(MaterialTheme.colorScheme.primary),
 
-                    scrollBehavior = scrollBehavior
-                )
-            }
-        ) { paddingValues ->
-            Box(Modifier.padding(paddingValues)) {
-                content(scrollBehavior.nestedScrollConnection)
-            }
+                scrollBehavior = scrollBehavior
+            )
+        }
+    ) { paddingValues ->
+        Box(Modifier.padding(paddingValues)) {
+            content(scrollBehavior.nestedScrollConnection)
         }
     }
 }
 
 @Composable
-fun DropdownMenuItems(navController: NavController) {
-    DropdownMenuItem(
-        text = { Text("Habits") },
-        onClick = { navController.navigate("habits") }
-    )
-    DropdownMenuItem(
-        text = { Text("Statistics") },
-        onClick = { navController.navigate("stats") }
-    )
+fun DropdownMenuItems(navController: NavController, onDismissRequest: () -> Unit) {
+    val screenRoutes = listOf("home", "habits", "stats", "achievements")
+    val screenTitles = listOf("Home", "Habits", "Statistics", "Achievements")
+
+    for (screen in 0 until 4) {
+        if (navController.currentDestination != navController.graph[screenRoutes[screen]]) {
+            DropdownMenuItem(
+                text = { Text(screenTitles[screen]) },
+                onClick = {
+                    onDismissRequest()
+                    navController.navigate(screenRoutes[screen])
+                }
+            )
+        }
+    }
 }
 
 @Composable

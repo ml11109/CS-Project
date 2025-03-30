@@ -10,6 +10,7 @@ class FilterViewModel : ViewModel() {
     fun filterHabits(habits: MutableList<Habit>): MutableList<Habit> {
         // TODO: Filter habits based on filter options
         val filteredHabits = mutableListOf<Habit>()
+        filteredHabits.addAll(habits) // Temp
         return filteredHabits
     }
 }

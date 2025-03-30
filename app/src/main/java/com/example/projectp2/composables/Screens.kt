@@ -1,5 +1,6 @@
 package com.example.projectp2.composables
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,8 +16,11 @@ import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
@@ -129,6 +133,36 @@ fun PageIndicator(pagerState: PagerState) {
                         .size(16.dp)
                 )
             }
+        }
+    }
+}
+
+@Composable
+fun ScreenSwitcher(
+    numScreens: Int,
+    initialScreen: Int = 0,
+    @SuppressLint("ModifierParameter") modifier: Modifier = Modifier,
+    getScreen: @Composable (screen: Int) -> Unit
+) {
+    var screen by remember { mutableIntStateOf(initialScreen) }
+
+    Box(
+        modifier = modifier
+    ) {
+        getScreen(screen)
+
+        IconButton(
+            onClick = { screen = (screen + 1) % numScreens },
+            modifier = Modifier.align(Alignment.CenterEnd)
+        ) {
+            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Next")
+        }
+
+        IconButton(
+            onClick = { screen = (screen - 1 + numScreens) % numScreens },
+            modifier = Modifier.align(Alignment.CenterStart)
+        ) {
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Previous")
         }
     }
 }

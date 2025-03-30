@@ -71,12 +71,12 @@ fun ExpandingSearchBarButton(
 
         IconButton(
             onClick = {
-                if (isExpanded) {
-                    focusManager.clearFocus()
-                } else {
-                    focusRequester.requestFocus()
-                }
                 isExpanded = !isExpanded
+                if (!isExpanded) {
+                    focusRequester.requestFocus()
+                } else {
+                    focusManager.clearFocus()
+                }
             }
         ) {
             Icon(Icons.Default.Search, "Search")

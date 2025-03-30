@@ -17,17 +17,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.projectp2.AddNewFAB
 import com.example.projectp2.AppScaffold
+import com.example.projectp2.composables.ScreenSwitcher
 import com.example.projectp2.model.UserDataViewModel
 import com.example.projectp2.model.Task
 
 @Composable
 fun HomeScreen(userDataViewModel: UserDataViewModel, navController: NavController) {
+    val boxModifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(8.dp))
+
     AppScaffold(
         title = "CS Project",
         navController = navController,
@@ -45,28 +49,19 @@ fun HomeScreen(userDataViewModel: UserDataViewModel, navController: NavControlle
 
             MiniScreen(
                 userDataViewModel,
-                Modifier
-                    .fillMaxWidth()
-                    .weight(0.4f)
-                    .background(MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(8.dp))
+                boxModifier.fillMaxWidth().height(250.dp)
             )
             Spacer(Modifier.height(12.dp))
 
-            Row(modifier = Modifier.fillMaxWidth().weight(0.6f)) {
+            Row(modifier = Modifier.fillMaxWidth().weight(1f)) {
                 TaskList(
                     "Ongoing", userDataViewModel.getOngoingTasks(), navController,
-                    Modifier
-                        .fillMaxHeight()
-                        .weight(1f)
-                        .background(MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(8.dp))
+                    boxModifier.fillMaxHeight().weight(1f)
                 )
                 Spacer(Modifier.width(12.dp))
                 TaskList(
                     "Upcoming", userDataViewModel.getUpcomingTasks(), navController,
-                    Modifier
-                        .fillMaxHeight()
-                        .weight(1f)
-                        .background(MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(8.dp))
+                    boxModifier.fillMaxHeight().weight(1f)
                 )
             }
         }
@@ -95,30 +90,12 @@ fun InfoBar(userDataViewModel: UserDataViewModel, modifier: Modifier = Modifier)
 
 @Composable
 fun MiniScreen(userDataViewModel: UserDataViewModel, modifier: Modifier = Modifier) {
-    var screenNum by remember { mutableIntStateOf(0) }
-
-    Box(
-        modifier = modifier
-    ) {
+    ScreenSwitcher(3, 0, modifier) { screenNum ->
         val screenModifier = Modifier.fillMaxSize().padding(16.dp)
         when (screenNum) {
             0 -> MiniHabitsScreen(userDataViewModel, screenModifier)
             1 -> MiniStatsScreen(userDataViewModel, screenModifier)
             2 -> MiniAchievementsScreen(userDataViewModel, screenModifier)
-        }
-
-        IconButton(
-            onClick = { screenNum = (screenNum + 1) % 3 },
-            modifier = Modifier.align(Alignment.CenterEnd)
-        ) {
-            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Next")
-        }
-
-        IconButton(
-            onClick = { screenNum = (screenNum + 2) % 3 },
-            modifier = Modifier.align(Alignment.CenterStart)
-        ) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Previous")
         }
     }
 }
@@ -149,7 +126,13 @@ fun TaskList(title: String, tasks: List<Task>, navController: NavController, mod
             modifier = Modifier.fillMaxSize().padding(16.dp),
         ) {
             items(tasks.size) { index ->
-                TaskCard(tasks[index])
+                TaskCard(
+                    tasks[index],
+                    Modifier
+                        .fillMaxWidth()
+                        .height(100.dp) // Temp
+                        .padding(vertical = 4.dp)
+                )
             }
         }
     }

@@ -1,6 +1,6 @@
 todo:
 - Create home page layout /
-- Create habits page layout
+- Create habits page layout /
 - Create details page layout
 - Create stats page layout
 - Create achievements page layout
