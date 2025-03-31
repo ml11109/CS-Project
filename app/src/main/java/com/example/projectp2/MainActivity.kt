@@ -5,7 +5,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -16,7 +15,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -25,12 +23,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,6 +40,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.get
+import com.example.projectp2.ai_generated.HabitTrackerScreen
+import com.example.projectp2.model.Habit
 import com.example.projectp2.model.UserDataViewModel
 import com.example.projectp2.ui.AchievementsScreen
 import com.example.projectp2.ui.HomeScreen
@@ -55,6 +52,7 @@ import com.example.projectp2.ui.StatsScreen
 import com.example.projectp2.ui.SettingsScreen
 import com.example.projectp2.ui.OnboardingScreen
 import com.example.projectp2.ui.SplashScreen
+import com.example.projectp2.ai_generated.TestDetailsScreen
 import com.example.projectp2.ui.theme.ProjectP2Theme
 
 class MainActivity : ComponentActivity() {
@@ -70,7 +68,7 @@ fun AppNavigation() {
     val userDataViewModel: UserDataViewModel = viewModel()
     val navController = rememberNavController()
 
-    NavHost(navController, startDestination = "habits") {
+    NavHost(navController, startDestination = "home") {
         composable("splash") { SplashScreen(navController) }
         composable("onboarding") { OnboardingScreen(navController) }
         composable("home") { HomeScreen(userDataViewModel, navController) }
@@ -85,6 +83,9 @@ fun AppNavigation() {
         composable("achievements") { AchievementsScreen(userDataViewModel, navController) }
         composable("info") { InfoScreen(userDataViewModel, navController) }
         composable("settings") { SettingsScreen(userDataViewModel, navController) }
+
+        composable("test") { HabitTrackerScreen() }
+        composable("details test") { TestDetailsScreen(userDataViewModel, navController, Habit()) }
     }
 }
 
@@ -139,10 +140,10 @@ fun AppScaffold(
 
 @Composable
 fun DropdownMenuItems(navController: NavController, onDismissRequest: () -> Unit) {
-    val screenRoutes = listOf("home", "habits", "stats", "achievements")
-    val screenTitles = listOf("Home", "Habits", "Statistics", "Achievements")
+    val screenRoutes = listOf("home", "habits", "stats", "achievements", "test", "details test")
+    val screenTitles = listOf("Home", "Habits", "Statistics", "Achievements", "test", "details test")
 
-    for (screen in 0 until 4) {
+    for (screen in screenRoutes.indices) {
         if (navController.currentDestination != navController.graph[screenRoutes[screen]]) {
             DropdownMenuItem(
                 text = { Text(screenTitles[screen]) },

@@ -72,7 +72,7 @@ fun ExpandingSearchBarButton(
         IconButton(
             onClick = {
                 isExpanded = !isExpanded
-                if (!isExpanded) {
+                if (isExpanded) {
                     focusRequester.requestFocus()
                 } else {
                     focusManager.clearFocus()
