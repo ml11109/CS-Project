@@ -33,6 +33,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -74,6 +75,7 @@ DropdownSelector(listOf("Option 1", "Option 2", "Option 3"), onValueChange = { o
 fun DropdownSelector(
     options: List<String>,
     modifier: Modifier = Modifier,
+    textStyle: TextStyle,
     initialOption: String = "Select an option",
     onValueChange: (String) -> Unit,
     content: @Composable (selectedText: String, expanded: Boolean, modifier: Modifier) -> Unit
@@ -94,7 +96,7 @@ fun DropdownSelector(
         ) {
             options.forEach { option ->
                 DropdownMenuItem(
-                    text = { Text(option) },
+                    text = { Text(option, style = textStyle) },
                     onClick = {
                         selectedText = option
                         onValueChange(option)
@@ -115,7 +117,7 @@ fun DropdownTextField(
     initialOption: String = "Select an option",
     onValueChange: (String) -> Unit
 ) {
-    DropdownSelector(options, modifier, initialOption, onValueChange) { selectedText, expanded, contentModifier ->
+    DropdownSelector(options, modifier, textStyle, initialOption, onValueChange) { selectedText, expanded, contentModifier ->
         OutlinedTextField(
             value = selectedText,
             onValueChange = {},
@@ -136,7 +138,7 @@ fun DropdownTextBox(
     initialOption: String = "Select an option",
     onValueChange: (String) -> Unit
 ) {
-    DropdownSelector(options, modifier, initialOption, onValueChange) { selectedText, expanded, contentModifier ->
+    DropdownSelector(options, modifier, textStyle, initialOption, onValueChange) { selectedText, expanded, contentModifier ->
         Row(
             modifier = contentModifier.fillMaxSize().padding(4.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -207,7 +209,13 @@ fun ExpandingTextField(
                     .alpha(1 - alpha),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Color.Transparent,
-                    unfocusedBorderColor = Color.Transparent
+                    unfocusedBorderColor = Color.Transparent,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground.copy(
+                        alpha = if (text.isBlank()) 0.75f else 1f
+                    ),
+                    focusedTextColor = MaterialTheme.colorScheme.onBackground.copy(
+                        alpha = if (text.isBlank()) 0.75f else 1f
+                    )
                 ),
             )
 

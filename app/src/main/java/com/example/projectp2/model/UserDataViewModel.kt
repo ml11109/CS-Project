@@ -8,15 +8,13 @@ class UserDataViewModel : ViewModel() {
         Category.PERSONAL,
         Category.WORK,
         Category.HEALTH,
-        Category.OTHER,
-        Category.NONE
+        Category.OTHER
     )
     val frequencyTypes = mutableListOf(
         Frequency.DAILY,
         Frequency.WEEKLY,
         Frequency.MONTHLY,
-        Frequency.YEARLY,
-        Frequency.NONE
+        Frequency.YEARLY
     )
 
     init {
