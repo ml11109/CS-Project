@@ -1,5 +1,7 @@
 package com.example.projectp2.ui
 
+import android.app.DatePickerDialog
+import android.widget.DatePicker
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.horizontalScroll
@@ -16,34 +18,43 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.projectp2.AddNewFAB
 import com.example.projectp2.AppScaffold
 import com.example.projectp2.composables.BasicExpandingSearchBar
-import com.example.projectp2.composables.DatePickerButton
 import com.example.projectp2.composables.DropdownTextBox
 import com.example.projectp2.composables.ScreenSwitcher
-import com.example.projectp2.model.FilterViewModel
+import com.example.projectp2.model.Filter
 import com.example.projectp2.model.Habit
 import com.example.projectp2.model.Task
 import com.example.projectp2.model.UserDataViewModel
+import java.util.Calendar
 
 @Composable
-fun HabitsScreen(userDataViewModel: UserDataViewModel, navController: NavController) {
+fun HabitsScreen(userDataViewModel: UserDataViewModel, navController: NavController, filter: Filter = Filter()) {
     val boxModifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(8.dp))
-    val filterViewModel: FilterViewModel = viewModel()
     val focusManager = LocalFocusManager.current
 
     AppScaffold(
@@ -61,7 +72,7 @@ fun HabitsScreen(userDataViewModel: UserDataViewModel, navController: NavControl
                     detectTapGestures { focusManager.clearFocus() }
                 }
         ) {
-            FilterOptions(userDataViewModel, filterViewModel, Modifier.height(30.dp))
+            FilterOptions(userDataViewModel, filter, Modifier.height(30.dp))
             Spacer(Modifier.height(12.dp))
 
             HabitCalendar(boxModifier.fillMaxWidth().height(250.dp))
@@ -70,7 +81,7 @@ fun HabitsScreen(userDataViewModel: UserDataViewModel, navController: NavControl
             HorizontalDivider(Modifier.fillMaxWidth())
             Spacer(Modifier.height(12.dp))
 
-            HabitList(filterViewModel.filterHabits(userDataViewModel.habits.values), Modifier.fillMaxWidth().weight(1f))
+            HabitList(Filter.filterHabits(userDataViewModel.habits.values), Modifier.fillMaxWidth().weight(1f))
         }
     }
 }
@@ -83,7 +94,7 @@ fun MiniHabitsScreen(userDataViewModel: UserDataViewModel, modifier: Modifier = 
 }
 
 @Composable
-fun FilterOptions(userDataViewModel: UserDataViewModel, filterViewModel: FilterViewModel, modifier: Modifier = Modifier) {
+fun FilterOptions(userDataViewModel: UserDataViewModel, filter: Filter, modifier: Modifier = Modifier) {
     val scrollState = rememberScrollState()
 
     Row(
@@ -99,7 +110,9 @@ fun FilterOptions(userDataViewModel: UserDataViewModel, filterViewModel: FilterV
                 modifier = modifier.width(100.dp).background(MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(4.dp)),
                 textStyle = MaterialTheme.typography.bodySmall,
                 initialOption = "Status"
-            )
+            ) {
+                filter.status = it
+            }
             Spacer(modifier.width(8.dp))
 
             DropdownTextBox(
@@ -107,7 +120,9 @@ fun FilterOptions(userDataViewModel: UserDataViewModel, filterViewModel: FilterV
                 modifier = modifier.width(100.dp).background(MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(4.dp)),
                 textStyle = MaterialTheme.typography.bodySmall,
                 initialOption = "Category"
-            )
+            ) {
+                filter.category = it
+            }
             Spacer(modifier.width(8.dp))
 
             DropdownTextBox(
@@ -115,7 +130,9 @@ fun FilterOptions(userDataViewModel: UserDataViewModel, filterViewModel: FilterV
                 modifier = modifier.width(100.dp).background(MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(4.dp)),
                 textStyle = MaterialTheme.typography.bodySmall,
                 initialOption = "Frequency"
-            )
+            ) {
+                filter.frequency = it
+            }
         }
 
         Row(
@@ -126,13 +143,56 @@ fun FilterOptions(userDataViewModel: UserDataViewModel, filterViewModel: FilterV
                 textStyle = MaterialTheme.typography.bodyMedium,
                 height = 24.dp
             ) {
-                filterViewModel.filter.title = it
+                filter.title = it
             }
 
-            DatePickerButton(filterViewModel.calendar, modifier) { _, year, month, day ->
-                filterViewModel.calendar.set(year, month, day)
+            DatePickerSwitch(
+                date = filter.date,
+                modifier = modifier,
+                on = filter.filterDate,
+                onDateSelect = { _, year, month, day ->
+                    filter.date.set(year, month, day)
+                },
+                onSwitchOff = {
+                    filter.filterDate = false
+                }
+            )
+        }
+    }
+}
+
+@Composable
+fun DatePickerSwitch(
+    date: Calendar,
+    modifier: Modifier = Modifier,
+    on: Boolean = false,
+    onDateSelect: (DatePicker, Int, Int, Int) -> Unit,
+    onSwitchOff: () -> Unit
+) {
+    val context = LocalContext.current
+    var isOn by remember { mutableStateOf(on) }
+
+    IconButton(
+        modifier = modifier,
+        colors = IconButtonDefaults.iconButtonColors(
+            contentColor = if (isOn) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground,
+        ),
+        onClick = {
+            isOn = !isOn
+            if (isOn) {
+                DatePickerDialog(
+                    context,
+                    onDateSelect,
+                    date.get(Calendar.YEAR),
+                    date.get(Calendar.MONTH),
+                    date.get(Calendar.DAY_OF_MONTH)
+                ).show()
+            } else {
+                onSwitchOff()
             }
         }
+    ) {
+        Icon(Icons.Default.DateRange, "Date")
     }
 }
 

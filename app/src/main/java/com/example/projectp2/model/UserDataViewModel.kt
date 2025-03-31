@@ -4,8 +4,20 @@ import androidx.lifecycle.ViewModel
 
 class UserDataViewModel : ViewModel() {
     var habits = mutableMapOf<Int, Habit>()
-    val categories = mutableListOf("Work", "Personal", "Health")
-    val frequencyTypes = mutableListOf("Daily", "Weekly", "Monthly")
+    val categories = mutableListOf(
+        Category.PERSONAL,
+        Category.WORK,
+        Category.HEALTH,
+        Category.OTHER,
+        Category.NONE
+    )
+    val frequencyTypes = mutableListOf(
+        Frequency.DAILY,
+        Frequency.WEEKLY,
+        Frequency.MONTHLY,
+        Frequency.YEARLY,
+        Frequency.NONE
+    )
 
     init {
         for (i in 0..10 step 2) {
@@ -37,4 +49,20 @@ class UserDataViewModel : ViewModel() {
             return Habit(id = id)
         }
     }
+}
+
+object Category {
+    const val PERSONAL = "Personal"
+    const val WORK = "Work"
+    const val HEALTH = "Health"
+    const val OTHER = "Other"
+    const val NONE = "None"
+}
+
+object Frequency {
+    const val DAILY = "Daily"
+    const val WEEKLY = "Weekly"
+    const val MONTHLY = "Monthly"
+    const val YEARLY = "Yearly"
+    const val NONE = "None"
 }

@@ -6,6 +6,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -18,6 +20,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
@@ -47,6 +53,108 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /*
+// Dropdown menu that displays a list of text options
+
+DropdownTextField(listOf("Option 1", "Option 2", "Option 3")) { option = it }
+
+DropdownTextBox(
+    listOf("Option 1", "Option 2", "Option 3"),
+    modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(4.dp)),
+) {
+    option = it
+}
+
+DropdownSelector(listOf("Option 1", "Option 2", "Option 3"), onValueChange = { option = it }) { selectedText, expanded, contentModifier ->
+    // Custom display
+}
+ */
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DropdownSelector(
+    options: List<String>,
+    modifier: Modifier = Modifier,
+    initialOption: String = "Select an option",
+    onValueChange: (String) -> Unit,
+    content: @Composable (selectedText: String, expanded: Boolean, modifier: Modifier) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    var selectedText by remember { mutableStateOf(initialOption) }
+
+    ExposedDropdownMenuBox(
+        modifier = modifier,
+        expanded = expanded,
+        onExpandedChange = { expanded = it }
+    ) {
+        content(selectedText, expanded, Modifier.menuAnchor())
+
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            options.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(option) },
+                    onClick = {
+                        selectedText = option
+                        onValueChange(option)
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DropdownTextField(
+    options: List<String>,
+    modifier: Modifier = Modifier,
+    textStyle: TextStyle = TextStyle.Default,
+    initialOption: String = "Select an option",
+    onValueChange: (String) -> Unit
+) {
+    DropdownSelector(options, modifier, initialOption, onValueChange) { selectedText, expanded, contentModifier ->
+        OutlinedTextField(
+            value = selectedText,
+            onValueChange = {},
+            readOnly = true,
+            textStyle = textStyle,
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            modifier = contentModifier.fillMaxSize()
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DropdownTextBox(
+    options: List<String>,
+    modifier: Modifier = Modifier,
+    textStyle: TextStyle = TextStyle.Default,
+    initialOption: String = "Select an option",
+    onValueChange: (String) -> Unit
+) {
+    DropdownSelector(options, modifier, initialOption, onValueChange) { selectedText, expanded, contentModifier ->
+        Row(
+            modifier = contentModifier.fillMaxSize().padding(4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Spacer(Modifier.width(4.dp))
+            Text(
+                text = selectedText,
+                style = textStyle
+            )
+            Spacer(Modifier.weight(1f))
+            ExposedDropdownMenuDefaults.TrailingIcon(
+                expanded = expanded
+            )
+        }
+    }
+}
+
+/*
 // Text field with button beside that expands it when clicked
 // text field contracts to fit text when unfocused
 ExpandingTextField { text = it }
@@ -59,6 +167,7 @@ fun ExpandingTextField(
     width: Dp = 200.dp,
     height: Dp = 54.dp,
     textStyle: TextStyle = LocalTextStyle.current,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     isButtonOnRight: Boolean = true,
     showHintIfEmpty: Boolean = false,
     onTextChanged: (String) -> Unit
@@ -80,7 +189,6 @@ fun ExpandingTextField(
     var text by remember { mutableStateOf("") }
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
-
 
     Row(
         modifier = modifier,
@@ -123,10 +231,12 @@ fun ExpandingTextField(
                     .alpha(alpha)
                     .focusRequester(focusRequester)
                     .onFocusChanged { expanded = it.isFocused },
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardOptions = keyboardOptions,
                 keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
             )
         }
+
+        Spacer(Modifier.width(8.dp))
 
         IconButton(
             onClick = {
@@ -148,13 +258,13 @@ fun ExpandingTextField(
 
 BasicExpandingSearchBar { text = it } // Smaller, basic text field
 OutlinedExpandingSearchBar { text = it } // Larger, outlined text field
-ExpandingSearchBarButton { contentModifier ->
+ExpandingBarButton { contentModifier ->
     // Custom text field using the given modifier
 }
  */
 
 @Composable
-fun ExpandingTextFieldButton(
+fun ExpandingBarButton(
     modifier: Modifier = Modifier,
     width: Dp = 200.dp,
     isButtonOnRight: Boolean = true,
@@ -206,7 +316,7 @@ fun BasicExpandingSearchBar(
     var text by remember { mutableStateOf("") }
     val focusManager = LocalFocusManager.current
 
-    ExpandingTextFieldButton(modifier, width, isButtonOnRight, Icons.Default.Search) { contentModifier, _ ->
+    ExpandingBarButton(modifier, width, isButtonOnRight, Icons.Default.Search) { contentModifier, _ ->
         Box(
             modifier = contentModifier,
             contentAlignment = Alignment.Center
@@ -228,7 +338,7 @@ fun BasicExpandingSearchBar(
                     value = text,
                     onValueChange = { text = it; onTextChanged(it) },
                     singleLine = true,
-                    textStyle = textStyle,
+                    textStyle = textStyle.copy(color = MaterialTheme.colorScheme.onBackground),
                     modifier = Modifier.fillMaxWidth().height(height),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                     keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
@@ -251,7 +361,7 @@ fun OutlinedExpandingSearchBar(
     var text by remember { mutableStateOf("") }
     val focusManager = LocalFocusManager.current
 
-    ExpandingTextFieldButton(modifier, width, isButtonOnRight, Icons.Default.Search) { contentModifier, _ ->
+    ExpandingBarButton(modifier, width, isButtonOnRight, Icons.Default.Search) { contentModifier, _ ->
         OutlinedTextField(
             value = text,
             onValueChange = { text = it; onTextChanged(it) },

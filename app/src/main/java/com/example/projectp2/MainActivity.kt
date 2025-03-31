@@ -53,6 +53,7 @@ import com.example.projectp2.ui.SettingsScreen
 import com.example.projectp2.ui.OnboardingScreen
 import com.example.projectp2.ui.SplashScreen
 import com.example.projectp2.ai_generated.TestDetailsScreen
+import com.example.projectp2.model.Filter
 import com.example.projectp2.ui.theme.ProjectP2Theme
 
 class MainActivity : ComponentActivity() {
@@ -72,7 +73,11 @@ fun AppNavigation() {
         composable("splash") { SplashScreen(navController) }
         composable("onboarding") { OnboardingScreen(navController) }
         composable("home") { HomeScreen(userDataViewModel, navController) }
-        composable("habits") { HabitsScreen(userDataViewModel, navController) }
+
+        composable("habits/{filterStatus}") { backStackEntry ->
+            val filterStatus = backStackEntry.arguments?.getString("filterStatus").toString()
+            HabitsScreen(userDataViewModel, navController, Filter(status = filterStatus.ifEmpty { null }))
+        }
 
         composable("details/{habitId}") { backStackEntry ->
             val habitId = backStackEntry.arguments?.getString("habitId")
@@ -140,7 +145,7 @@ fun AppScaffold(
 
 @Composable
 fun DropdownMenuItems(navController: NavController, onDismissRequest: () -> Unit) {
-    val screenRoutes = listOf("home", "habits", "stats", "achievements", "test", "details test")
+    val screenRoutes = listOf("home", "habits/", "stats", "achievements", "test", "details test")
     val screenTitles = listOf("Home", "Habits", "Statistics", "Achievements", "test", "details test")
 
     for (screen in screenRoutes.indices) {
@@ -149,7 +154,9 @@ fun DropdownMenuItems(navController: NavController, onDismissRequest: () -> Unit
                 text = { Text(screenTitles[screen]) },
                 onClick = {
                     onDismissRequest()
-                    navController.navigate(screenRoutes[screen])
+                    navController.navigate(screenRoutes[screen]) {
+                        popUpTo("home") { inclusive = screenRoutes[screen] == "home" }
+                    }
                 }
             )
         }

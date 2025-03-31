@@ -116,7 +116,7 @@ fun TaskList(title: String, tasks: List<Task>, navController: NavController, mod
             )
             Spacer(Modifier.weight(1f))
             IconButton(
-                onClick = { navController.navigate("habits") }
+                onClick = { navController.navigate("habits/${title.lowercase()}") }
             ) {
                 Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "See More")
             }
