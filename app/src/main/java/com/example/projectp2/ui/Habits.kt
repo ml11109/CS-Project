@@ -70,7 +70,7 @@ fun HabitsScreen(userDataViewModel: UserDataViewModel, navController: NavControl
             HorizontalDivider(Modifier.fillMaxWidth())
             Spacer(Modifier.height(12.dp))
 
-            HabitList(filterViewModel.filterHabits(userDataViewModel.habits), Modifier.fillMaxWidth().weight(1f))
+            HabitList(filterViewModel.filterHabits(userDataViewModel.habits.values), Modifier.fillMaxWidth().weight(1f))
         }
     }
 }

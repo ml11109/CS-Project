@@ -76,7 +76,7 @@ fun TestDetailsScreen(userDataViewModel: UserDataViewModel, navController: NavCo
                                 completion = 0f,
                                 daysCompleted = ArrayList()
                             )
-                            userDataViewModel.habits.add(newHabit)
+                            userDataViewModel.habits[0] = newHabit
                         },
                         enabled = habitTitle.isNotBlank()
                     ) {

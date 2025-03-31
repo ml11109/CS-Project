@@ -76,7 +76,7 @@ fun AppNavigation() {
 
         composable("details/{habitId}") { backStackEntry ->
             val habitId = backStackEntry.arguments?.getString("habitId")
-            DetailsScreen(userDataViewModel, navController, userDataViewModel.getHabitFromId(habitId!!.toInt()))
+            DetailsScreen(userDataViewModel, navController, habitId!!.toInt())
         }
 
         composable("stats") { StatsScreen(userDataViewModel, navController) }
@@ -176,7 +176,7 @@ fun MenuItems(navController: NavController) {
 @Composable
 fun AddNewFAB(navController: NavController) {
     FloatingActionButton(
-        onClick = { navController.navigate("details/0") },
+        onClick = { navController.navigate("details/-1") },
         containerColor = MaterialTheme.colorScheme.primary,
         contentColor = MaterialTheme.colorScheme.onPrimary,
         shape = RoundedCornerShape(50)

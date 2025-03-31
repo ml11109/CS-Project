@@ -7,7 +7,7 @@ class FilterViewModel : ViewModel() {
     var filter = Filter()
     val calendar = Calendar.getInstance()
 
-    fun filterHabits(habits: MutableList<Habit>): MutableList<Habit> {
+    fun filterHabits(habits: MutableCollection<Habit>): MutableList<Habit> {
         // TODO: Filter habits based on filter options
         val filteredHabits = mutableListOf<Habit>()
         filteredHabits.addAll(habits) // Temp
