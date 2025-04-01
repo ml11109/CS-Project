@@ -7,6 +7,8 @@ data class Habit(
     var category: String = Category.NONE,
     var frequency: String = Frequency.NONE,
     var taskList: TaskList = TaskList(),
-    var streak: Int = 0,
-    var completion: Float = 0f,
+
+    var sendNotifications: Boolean = false,
+    var numExceptionsPerMonth: Int = 0,
+    var allowExceptions: Boolean = false
 )

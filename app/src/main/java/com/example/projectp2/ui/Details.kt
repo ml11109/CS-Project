@@ -1,5 +1,6 @@
 package com.example.projectp2.ui
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -25,9 +26,18 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DrawerState
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -49,10 +59,13 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.core.text.isDigitsOnly
 import androidx.navigation.NavController
 import com.example.projectp2.AppScaffold
-import com.example.projectp2.composables.CustomDropdownTextField
+import com.example.projectp2.composables.CustomDropdownSelector
 import com.example.projectp2.composables.ExpandingTextField
 import com.example.projectp2.composables.OptionsRow
 import com.example.projectp2.composables.TimePickerButton
@@ -122,7 +135,11 @@ fun DetailsScreen(userDataViewModel: UserDataViewModel, navController: NavContro
                 DayOfMonthSelector(habit, Modifier.fillMaxWidth())
             }
 
-            HorizontalDivider(Modifier.fillMaxWidth().padding(start = 8.dp, end = 8.dp))
+            HorizontalDivider(Modifier.fillMaxWidth().padding(start = 8.dp, end = 8.dp, bottom = 12.dp))
+
+            AdvancedSettings(habit, Modifier.fillMaxWidth())
+
+            HorizontalDivider(Modifier.fillMaxWidth().padding(start = 8.dp, end = 8.dp, top = 12.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth().padding(end = 16.dp),
@@ -150,6 +167,7 @@ fun DetailsScreen(userDataViewModel: UserDataViewModel, navController: NavContro
                         userDataViewModel.habits[habit.id] = habit
                         navController.popBackStack()
                     },
+                    enabled = !(habit.title.isBlank() || habit.category == Category.NONE || habit.frequency == Frequency.NONE),
                     modifier = Modifier.width(100.dp),
                     shape = RoundedCornerShape(4.dp)
                 ) {
@@ -168,7 +186,10 @@ fun TitleTextField(habit: Habit, modifier: Modifier = Modifier) {
             modifier = modifier,
             hint = "Enter title...",
             width = boxWithConstraintsScope.maxWidth - 44.dp,
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Next,
+                capitalization = KeyboardCapitalization.Sentences
+            ),
             showHintIfEmpty = true
         ) {
             habit.title = it
@@ -192,10 +213,12 @@ fun DescriptionTextField(habit: Habit, modifier: Modifier = Modifier) {
 
 @Composable
 fun CategoryTextField(userDataViewModel: UserDataViewModel, navController: NavController, habit: Habit, modifier: Modifier = Modifier) {
-    CustomDropdownTextField(
+    CustomDropdownSelector(
         options = userDataViewModel.categories,
+        modifier = modifier,
         textStyle = MaterialTheme.typography.bodyLarge,
         initialOption = if (habit.category == Category.NONE) "Select a category" else habit.category,
+        userDataViewModel = userDataViewModel,
         navController = navController
     ) {
         habit.category = it
@@ -358,4 +381,94 @@ fun DayOfMonthSelector(habit: Habit, modifier: Modifier = Modifier) {
             }
         }
     }
+}
+
+@Composable
+fun AdvancedSettings(habit: Habit, modifier: Modifier = Modifier) {
+    var showAdvancedSettings by remember { mutableStateOf(false) }
+    var sendNotifications by remember { mutableStateOf(habit.sendNotifications) }
+    var numExceptionsPerMonth by remember { mutableStateOf(if (habit.numExceptionsPerMonth == 0) "" else habit.numExceptionsPerMonth.toString()) }
+    var allowExceptions by remember { mutableStateOf(habit.allowExceptions) }
+
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(32.dp)
+                .clickable { showAdvancedSettings = !showAdvancedSettings },
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Advanced Settings",
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            Icon(
+                if (showAdvancedSettings) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                contentDescription = if (showAdvancedSettings) "Hide advanced settings" else "Show advanced settings"
+            )
+        }
+
+        AnimatedVisibility(visible = showAdvancedSettings) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                )
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(16.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Notifications")
+                        Spacer(Modifier.weight(1f))
+                        Checkbox(
+                            checked = sendNotifications,
+                            onCheckedChange = {
+                                sendNotifications = it; habit.sendNotifications = it
+                            }
+                        )
+                    }
+                    Spacer(Modifier.height(12.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Exceptions")
+                        Spacer(Modifier.weight(1f))
+
+                        OutlinedTextField(
+                            value = numExceptionsPerMonth,
+                            onValueChange = { newValue ->
+                                if (newValue.isEmpty() || newValue.isDigitsOnly() && newValue.length <= 2) {
+                                    numExceptionsPerMonth = newValue
+                                    habit.numExceptionsPerMonth = if (newValue.isEmpty()) 0 else newValue.toInt()
+                                }
+                            },
+                            modifier = Modifier.width(54.dp).height(54.dp),
+                            textStyle = MaterialTheme.typography.bodyLarge,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        )
+                        Text("per month", Modifier.padding(start = 12.dp, end = 16.dp))
+
+                        Checkbox(
+                            checked = allowExceptions,
+                            onCheckedChange = {
+                                allowExceptions = it; habit.allowExceptions = it
+                            }
+                        )
+                    }
+                }
+            }
+        }
+    }
+
 }

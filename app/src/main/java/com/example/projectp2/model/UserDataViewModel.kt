@@ -2,19 +2,35 @@ package com.example.projectp2.model
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 
 class UserDataViewModel : ViewModel() {
-    var habits = mutableStateMapOf<Int, Habit>()
+    var habits = hashMapOf<Int, Habit>()
 
-    val categories = mutableStateListOf(
+    val categories = arrayListOf(
         Category.PERSONAL,
         Category.WORK,
         Category.HEALTH,
         Category.OTHER
     )
 
-    val frequencyTypes = mutableStateListOf(
+    val categoryColors = arrayListOf(
+        Color.Green,
+        Color.Blue,
+        Color.Red,
+        Color.Gray
+    )
+
+    fun getCategoryColor(category: String): Color {
+        return categoryColors[
+            categories.indexOf(
+                category
+            )
+        ]
+    }
+
+    val frequencyTypes = arrayListOf(
         Frequency.DAILY,
         Frequency.WEEKLY,
         Frequency.MONTHLY

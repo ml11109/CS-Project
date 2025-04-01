@@ -2,9 +2,15 @@ package com.example.projectp2.composables
 
 import android.app.DatePickerDialog
 import android.widget.DatePicker
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.DropdownMenuItem
@@ -23,13 +29,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.projectp2.model.UserDataViewModel
 import java.time.LocalDate
-import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,9 +45,9 @@ fun CustomDropdownSelector(
     modifier: Modifier = Modifier,
     textStyle: TextStyle,
     initialOption: String = "Select an option",
+    userDataViewModel: UserDataViewModel,
     navController: NavController,
-    onValueChange: (String) -> Unit,
-    content: @Composable (selectedText: String, expanded: Boolean, modifier: Modifier) -> Unit
+    onValueChange: (String) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
     var selectedText by remember { mutableStateOf(initialOption) }
@@ -50,7 +57,14 @@ fun CustomDropdownSelector(
         expanded = expanded,
         onExpandedChange = { expanded = it }
     ) {
-        content(selectedText, expanded, Modifier.menuAnchor())
+        OutlinedTextField(
+            value = selectedText,
+            onValueChange = {},
+            readOnly = true,
+            textStyle = textStyle,
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            modifier = Modifier.menuAnchor()
+        )
 
         ExposedDropdownMenu(
             expanded = expanded,
@@ -58,7 +72,20 @@ fun CustomDropdownSelector(
         ) {
             options.forEach { option ->
                 DropdownMenuItem(
-                    text = { Text(option, modifier = Modifier.padding(start = 8.dp), style = textStyle) },
+                    text = {
+                        Row {
+                            Spacer(Modifier.width(8.dp))
+                            Box(
+                                modifier = Modifier
+                                    .size(20.dp)
+                                    .clip(RoundedCornerShape(percent = 50))
+                                    .background(userDataViewModel.getCategoryColor(option))
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text(option, modifier = Modifier.padding(start = 8.dp), style = textStyle)
+                        }
+                    },
+
                     onClick = {
                         selectedText = option
                         onValueChange(option)
@@ -66,6 +93,7 @@ fun CustomDropdownSelector(
                     }
                 )
             }
+
             DropdownMenuItem(
                 text = { Text("Manage categories", modifier = Modifier.fillMaxWidth(),
                     style = textStyle, color = MaterialTheme.colorScheme.primary, textAlign = TextAlign.Center) },
@@ -74,28 +102,6 @@ fun CustomDropdownSelector(
                 }
             )
         }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun CustomDropdownTextField(
-    options: List<String>,
-    modifier: Modifier = Modifier,
-    textStyle: TextStyle = TextStyle.Default,
-    initialOption: String = "Select an option",
-    navController: NavController,
-    onValueChange: (String) -> Unit
-) {
-    CustomDropdownSelector(options, modifier, textStyle, initialOption, navController, onValueChange) { selectedText, expanded, contentModifier ->
-        OutlinedTextField(
-            value = selectedText,
-            onValueChange = {},
-            readOnly = true,
-            textStyle = textStyle,
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            modifier = contentModifier.fillMaxSize()
-        )
     }
 }
 

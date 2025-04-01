@@ -5,7 +5,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,14 +17,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
@@ -57,21 +53,20 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.get
 import com.example.projectp2.ai_generated.HabitTrackerScreen
+import com.example.projectp2.ai_generated.TestDetailsScreen
+import com.example.projectp2.model.Filter
 import com.example.projectp2.model.Habit
 import com.example.projectp2.model.UserDataViewModel
 import com.example.projectp2.ui.AchievementsScreen
+import com.example.projectp2.ui.DetailsScreen
+import com.example.projectp2.ui.HabitsScreen
 import com.example.projectp2.ui.HomeScreen
 import com.example.projectp2.ui.InfoScreen
-import com.example.projectp2.ui.HabitsScreen
-import com.example.projectp2.ui.DetailsScreen
-import com.example.projectp2.ui.StatsScreen
-import com.example.projectp2.ui.SettingsScreen
 import com.example.projectp2.ui.OnboardingScreen
+import com.example.projectp2.ui.SettingsScreen
 import com.example.projectp2.ui.SplashScreen
-import com.example.projectp2.ai_generated.TestDetailsScreen
-import com.example.projectp2.model.Filter
+import com.example.projectp2.ui.StatsScreen
 import com.example.projectp2.ui.theme.ProjectP2Theme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -127,7 +122,7 @@ fun AppNavigation(userDataViewModel: UserDataViewModel, navController: NavHostCo
             SettingsScreen(userDataViewModel, navController, drawerState, scope, setting)
         }
 
-        composable("test") { HabitTrackerScreen() }
+        composable("habits test") { HabitTrackerScreen() }
         composable("details test") { TestDetailsScreen(userDataViewModel, navController, Habit()) }
     }
 }
@@ -179,8 +174,8 @@ fun AppScaffold(
 
 @Composable
 fun DrawerContent(navController: NavHostController, drawerState: DrawerState, scope: CoroutineScope) {
-    val screenRoutes = listOf("home", "habits/", "stats", "achievements", "test", "details test")
-    val screenTitles = listOf("Home", "Habits", "Statistics", "Achievements", "test", "details test")
+    val screenRoutes = listOf("home", "habits/", "stats", "achievements", "habits test", "details test")
+    val screenTitles = listOf("Home", "Habits", "Statistics", "Achievements", "Habits (AI)", "Details (AI)")
     var currentScreen by remember { mutableStateOf("home") }
 
     ModalDrawerSheet(
@@ -201,7 +196,9 @@ fun DrawerContent(navController: NavHostController, drawerState: DrawerState, sc
                 Spacer(Modifier.width(16.dp))
                 Text("CS Project", fontSize = 22.sp)
             }
+
             HorizontalDivider(Modifier.padding(vertical = 8.dp))
+
             for (index in screenRoutes.indices) {
                 NavigationDrawerItem(
                     label = { Text(text = screenTitles[index], fontSize = 18.sp) },
