@@ -21,6 +21,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Card
+import androidx.compose.material3.DrawerState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -51,17 +52,20 @@ import com.example.projectp2.model.Filter
 import com.example.projectp2.model.Habit
 import com.example.projectp2.model.Task
 import com.example.projectp2.model.UserDataViewModel
+import kotlinx.coroutines.CoroutineScope
 import java.time.LocalDate
 import java.util.Calendar
 
 @Composable
-fun HabitsScreen(userDataViewModel: UserDataViewModel, navController: NavController, filter: Filter = Filter()) {
+fun HabitsScreen(userDataViewModel: UserDataViewModel, navController: NavController, drawerState: DrawerState, scope: CoroutineScope, filter: Filter = Filter()) {
     val boxModifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(8.dp))
     val focusManager = LocalFocusManager.current
 
     AppScaffold(
         title = "Habits",
         navController = navController,
+        drawerState = drawerState,
+        scope = scope,
         floatingActionButton = { AddNewFAB(navController) }
     ) { nestedScrollConnection ->
         Column(

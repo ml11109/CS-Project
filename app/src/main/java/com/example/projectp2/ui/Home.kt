@@ -21,14 +21,17 @@ import com.example.projectp2.AppScaffold
 import com.example.projectp2.composables.ScreenSwitcher
 import com.example.projectp2.model.UserDataViewModel
 import com.example.projectp2.model.Task
+import kotlinx.coroutines.CoroutineScope
 
 @Composable
-fun HomeScreen(userDataViewModel: UserDataViewModel, navController: NavController) {
+fun HomeScreen(userDataViewModel: UserDataViewModel, navController: NavController, drawerState: DrawerState, scope: CoroutineScope) {
     val boxModifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(8.dp))
 
     AppScaffold(
         title = "CS Project",
         navController = navController,
+        drawerState = drawerState,
+        scope = scope,
         floatingActionButton = { AddNewFAB(navController) }
     ) { nestedScrollConnection ->
         Column(

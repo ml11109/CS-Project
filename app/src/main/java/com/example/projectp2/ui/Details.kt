@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DrawerState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -60,18 +61,21 @@ import com.example.projectp2.model.Frequency
 import com.example.projectp2.model.Habit
 import com.example.projectp2.model.TaskList
 import com.example.projectp2.model.UserDataViewModel
+import kotlinx.coroutines.CoroutineScope
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
 @Composable
-fun DetailsScreen(userDataViewModel: UserDataViewModel, navController: NavController, habitId: Int) {
+fun DetailsScreen(userDataViewModel: UserDataViewModel, navController: NavController, drawerState: DrawerState, scope: CoroutineScope, habitId: Int) {
     val focusManager = LocalFocusManager.current
     val habit = userDataViewModel.getHabitFromId(habitId)
     var frequency by remember { mutableStateOf(habit.frequency) }
 
     AppScaffold(
         title = if (habitId == -1) "New Habit" else "Edit Habit",
-        navController = navController
+        navController = navController,
+        drawerState = drawerState,
+        scope = scope
     ) { nestedScrollConnection ->
         Column(
             modifier = Modifier
