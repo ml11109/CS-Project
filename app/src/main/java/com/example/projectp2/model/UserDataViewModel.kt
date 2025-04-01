@@ -1,25 +1,30 @@
 package com.example.projectp2.model
 
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.lifecycle.ViewModel
 
 class UserDataViewModel : ViewModel() {
-    var habits = mutableMapOf<Int, Habit>()
-    val categories = mutableListOf(
+    var habits = mutableStateMapOf<Int, Habit>()
+
+    val categories = mutableStateListOf(
         Category.PERSONAL,
         Category.WORK,
         Category.HEALTH,
         Category.OTHER
     )
-    val frequencyTypes = mutableListOf(
+
+    val frequencyTypes = mutableStateListOf(
         Frequency.DAILY,
         Frequency.WEEKLY,
-        Frequency.MONTHLY,
-        Frequency.YEARLY
+        Frequency.MONTHLY
     )
 
     init {
-        for (i in 0..10 step 2) {
-            habits[i] = Habit()
+        if (habits.isEmpty()) {
+            for (i in 0..10 step 2) {
+                habits[i] = Habit()
+            }
         }
     }
 
@@ -61,6 +66,5 @@ object Frequency {
     const val DAILY = "Daily"
     const val WEEKLY = "Weekly"
     const val MONTHLY = "Monthly"
-    const val YEARLY = "Yearly"
     const val NONE = "None"
 }

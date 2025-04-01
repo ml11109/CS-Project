@@ -1,12 +1,15 @@
 package com.example.projectp2.composables
 
 import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import android.widget.DatePicker
+import android.widget.TimePicker
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -22,6 +25,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import java.time.LocalDate
+import java.time.LocalTime
 import java.util.Calendar
 
 /*
@@ -94,7 +99,7 @@ DeadlineDatePicker(calendar) { _, year, month, day ->
  */
 
 @Composable
-fun DatePickerButton(calendar: Calendar, modifier: Modifier = Modifier, onDateSelect: (DatePicker, Int, Int, Int) -> Unit) {
+fun DatePickerButton(date: LocalDate, modifier: Modifier = Modifier, onDateSelect: (DatePicker, Int, Int, Int) -> Unit) {
     val context = LocalContext.current
 
     IconButton(
@@ -103,12 +108,32 @@ fun DatePickerButton(calendar: Calendar, modifier: Modifier = Modifier, onDateSe
             DatePickerDialog(
                 context,
                 onDateSelect,
-                calendar.get(Calendar.YEAR),
-                calendar.get(Calendar.MONTH),
-                calendar.get(Calendar.DAY_OF_MONTH)
+                date.year,
+                date.monthValue,
+                date.dayOfMonth
             ).show()
         }
     ) {
         Icon(Icons.Default.DateRange, "Date")
+    }
+}
+
+@Composable
+fun TimePickerButton(time: LocalTime, modifier: Modifier = Modifier, onTimeSelect: (TimePicker, Int, Int) -> Unit) {
+    val context = LocalContext.current
+
+    IconButton(
+        modifier = modifier,
+        onClick = {
+            TimePickerDialog(
+                context,
+                onTimeSelect,
+                time.hour,
+                time.minute,
+                false
+            ).show()
+        }
+    ) {
+        Icon(Icons.Default.Edit, "Time")
     }
 }

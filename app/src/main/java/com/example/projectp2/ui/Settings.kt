@@ -5,6 +5,6 @@ import androidx.navigation.NavController
 import com.example.projectp2.model.UserDataViewModel
 
 @Composable
-fun SettingsScreen(userDataViewModel: UserDataViewModel, navController: NavController) {
+fun SettingsScreen(userDataViewModel: UserDataViewModel, navController: NavController, setting: String) {
 
 }

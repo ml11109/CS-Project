@@ -1,11 +1,11 @@
 todo:
 - Create home page layout /
 - Create habits page layout /
-- Create details page layout
+- Create details page layout /
 - Create stats page layout
 - Create achievements page layout
 
-- Basic habit creation
+- Basic habit creation /
 - Habit display and filtering
 - Calendar habit display
 - Mini habit display on home page

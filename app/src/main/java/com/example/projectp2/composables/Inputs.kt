@@ -11,12 +11,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Search
@@ -24,6 +27,8 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
@@ -33,7 +38,6 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -194,9 +198,25 @@ fun ExpandingTextField(
 
     Row(
         modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = if (isButtonOnRight) Arrangement.Start else Arrangement.End
+        verticalAlignment = Alignment.CenterVertically
     ) {
+        if (!isButtonOnRight) {
+            IconButton(
+                onClick = {
+                    expanded = !expanded
+                    if (expanded) {
+                        focusRequester.requestFocus()
+                    } else {
+                        focusManager.clearFocus()
+                    }
+                }
+            ) {
+                Icon(Icons.Default.Edit, null, modifier = Modifier.alpha(0.75f))
+            }
+
+            Spacer(Modifier.width(4.dp))
+        }
+
         Box {
             OutlinedTextField(
                 value = text.ifBlank { hint },
@@ -244,19 +264,21 @@ fun ExpandingTextField(
             )
         }
 
-        Spacer(Modifier.width(8.dp))
+        if (isButtonOnRight) {
+            Spacer(Modifier.width(4.dp))
 
-        IconButton(
-            onClick = {
-                expanded = !expanded
-                if (expanded) {
-                    focusRequester.requestFocus()
-                } else {
-                    focusManager.clearFocus()
+            IconButton(
+                onClick = {
+                    expanded = !expanded
+                    if (expanded) {
+                        focusRequester.requestFocus()
+                    } else {
+                        focusManager.clearFocus()
+                    }
                 }
+            ) {
+                Icon(Icons.Default.Edit, null, modifier = Modifier.alpha(0.75f))
             }
-        ) {
-            Icon(Icons.Default.Edit, null)
         }
     }
 }
@@ -380,5 +402,31 @@ fun OutlinedExpandingSearchBar(
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
         )
+    }
+}
+
+@Composable
+fun OptionsRow(
+    options: List<String>,
+    modifier: Modifier = Modifier,
+    initialOption: String = "",
+    onValueChange: (String) -> Unit
+) {
+    var selected by remember { mutableStateOf(initialOption) }
+    LazyRow(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(options.size) { index -> val option = options[index]
+            FilterChip(
+                selected = option == selected,
+                onClick = { selected = option; onValueChange(option) },
+                label = { Text(option) },
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            )
+        }
     }
 }

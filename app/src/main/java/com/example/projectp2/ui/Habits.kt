@@ -44,12 +44,14 @@ import androidx.navigation.NavController
 import com.example.projectp2.AddNewFAB
 import com.example.projectp2.AppScaffold
 import com.example.projectp2.composables.BasicExpandingSearchBar
+import com.example.projectp2.composables.DatePickerSwitch
 import com.example.projectp2.composables.DropdownTextBox
 import com.example.projectp2.composables.ScreenSwitcher
 import com.example.projectp2.model.Filter
 import com.example.projectp2.model.Habit
 import com.example.projectp2.model.Task
 import com.example.projectp2.model.UserDataViewModel
+import java.time.LocalDate
 import java.util.Calendar
 
 @Composable
@@ -151,48 +153,13 @@ fun FilterOptions(userDataViewModel: UserDataViewModel, filter: Filter, modifier
                 modifier = modifier,
                 on = filter.filterDate,
                 onDateSelect = { _, year, month, day ->
-                    filter.date.set(year, month, day)
+                    filter.date = LocalDate.of(year, month, day)
                 },
                 onSwitchOff = {
                     filter.filterDate = false
                 }
             )
         }
-    }
-}
-
-@Composable
-fun DatePickerSwitch(
-    date: Calendar,
-    modifier: Modifier = Modifier,
-    on: Boolean = false,
-    onDateSelect: (DatePicker, Int, Int, Int) -> Unit,
-    onSwitchOff: () -> Unit
-) {
-    val context = LocalContext.current
-    var isOn by remember { mutableStateOf(on) }
-
-    IconButton(
-        modifier = modifier,
-        colors = IconButtonDefaults.iconButtonColors(
-            contentColor = if (isOn) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground,
-        ),
-        onClick = {
-            isOn = !isOn
-            if (isOn) {
-                DatePickerDialog(
-                    context,
-                    onDateSelect,
-                    date.get(Calendar.YEAR),
-                    date.get(Calendar.MONTH),
-                    date.get(Calendar.DAY_OF_MONTH)
-                ).show()
-            } else {
-                onSwitchOff()
-            }
-        }
-    ) {
-        Icon(Icons.Default.DateRange, "Date")
     }
 }
 

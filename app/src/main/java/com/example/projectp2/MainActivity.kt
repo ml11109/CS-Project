@@ -80,14 +80,18 @@ fun AppNavigation() {
         }
 
         composable("details/{habitId}") { backStackEntry ->
-            val habitId = backStackEntry.arguments?.getString("habitId")
-            DetailsScreen(userDataViewModel, navController, habitId!!.toInt())
+            val habitId = backStackEntry.arguments?.getString("habitId")!!.toInt()
+            DetailsScreen(userDataViewModel, navController, habitId)
         }
 
         composable("stats") { StatsScreen(userDataViewModel, navController) }
         composable("achievements") { AchievementsScreen(userDataViewModel, navController) }
         composable("info") { InfoScreen(userDataViewModel, navController) }
-        composable("settings") { SettingsScreen(userDataViewModel, navController) }
+
+        composable("settings/{setting}") { backStackEntry ->
+            val setting = backStackEntry.arguments?.getString("setting").toString()
+            SettingsScreen(userDataViewModel, navController, setting)
+        }
 
         composable("test") { HabitTrackerScreen() }
         composable("details test") { TestDetailsScreen(userDataViewModel, navController, Habit()) }
@@ -173,7 +177,7 @@ fun MenuItems(navController: NavController) {
         }
 
         IconButton(
-            onClick = { navController.navigate("settings") }
+            onClick = { navController.navigate("settings/") }
         ) {
             Icon(Icons.Default.Settings, "Settings", tint = MaterialTheme.colorScheme.onPrimary)
         }

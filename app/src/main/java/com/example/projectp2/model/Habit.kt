@@ -6,7 +6,7 @@ data class Habit(
     var description: String = "",
     var category: String = Category.NONE,
     var frequency: String = Frequency.NONE,
+    var taskList: TaskList = TaskList(),
     var streak: Int = 0,
     var completion: Float = 0f,
-    var daysCompleted: ArrayList<String> = ArrayList()
 )

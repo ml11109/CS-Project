@@ -71,10 +71,7 @@ fun TestDetailsScreen(userDataViewModel: UserDataViewModel, navController: NavCo
                                 id = 1,
                                 title = habitTitle,
                                 description = habitDescription,
-                                frequency = selectedFrequency,
-                                streak = 0,
-                                completion = 0f,
-                                daysCompleted = ArrayList()
+                                frequency = selectedFrequency
                             )
                             userDataViewModel.habits[0] = newHabit
                         },

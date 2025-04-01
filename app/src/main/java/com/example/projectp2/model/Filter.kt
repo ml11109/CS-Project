@@ -1,13 +1,13 @@
 package com.example.projectp2.model
 
-import java.util.Calendar
+import java.time.LocalDate
 
 data class Filter(
     var title: String? = null,
     var status: String? = null,
     var category: String? = null,
     var frequency: String? = null,
-    var date: Calendar = Calendar.getInstance(),
+    var date: LocalDate = LocalDate.now(),
     var filterDate: Boolean = false
 ) {
     companion object {

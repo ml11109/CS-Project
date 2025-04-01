@@ -7,17 +7,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -54,12 +48,12 @@ fun HomeScreen(userDataViewModel: UserDataViewModel, navController: NavControlle
             Spacer(Modifier.height(12.dp))
 
             Row(modifier = Modifier.fillMaxWidth().weight(1f)) {
-                TaskList(
+                TaskColumn(
                     "Ongoing", userDataViewModel.getOngoingTasks(), navController,
                     boxModifier.fillMaxHeight().weight(1f)
                 )
                 Spacer(Modifier.width(12.dp))
-                TaskList(
+                TaskColumn(
                     "Upcoming", userDataViewModel.getUpcomingTasks(), navController,
                     boxModifier.fillMaxHeight().weight(1f)
                 )
@@ -101,7 +95,7 @@ fun MiniScreen(userDataViewModel: UserDataViewModel, modifier: Modifier = Modifi
 }
 
 @Composable
-fun TaskList(title: String, tasks: List<Task>, navController: NavController, modifier: Modifier = Modifier) {
+fun TaskColumn(title: String, tasks: List<Task>, navController: NavController, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
     ) {
