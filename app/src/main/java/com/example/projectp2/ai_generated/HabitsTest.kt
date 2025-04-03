@@ -266,7 +266,7 @@ fun HabitsList(
             }
         } else {
             items(habits) { habit ->
-                HabitCard(
+                HabitCard1(
                     habit = habit,
                     isCompletedToday = habit.daysCompleted.any { it.isEqual(selectedDate) }
                 )
@@ -281,7 +281,7 @@ fun HabitsList(
 }
 
 @Composable
-fun HabitCard(
+fun HabitCard1(
     habit: Habit,
     isCompletedToday: Boolean
 ) {

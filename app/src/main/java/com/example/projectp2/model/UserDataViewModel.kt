@@ -1,12 +1,13 @@
 package com.example.projectp2.model
 
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
 
 class UserDataViewModel : ViewModel() {
-    var habits = hashMapOf<Int, Habit>()
+    var habits = arrayListOf<Habit>()
 
     val categories = arrayListOf(
         Category.PERSONAL,
@@ -23,11 +24,15 @@ class UserDataViewModel : ViewModel() {
     )
 
     fun getCategoryColor(category: String): Color {
-        return categoryColors[
-            categories.indexOf(
-                category
-            )
-        ]
+        return if (category in categories) {
+            categoryColors[
+                categories.indexOf(
+                    category
+                )
+            ]
+        } else {
+            Color.White
+        }
     }
 
     val frequencyTypes = arrayListOf(
@@ -36,37 +41,53 @@ class UserDataViewModel : ViewModel() {
         Frequency.MONTHLY
     )
 
-    init {
-        if (habits.isEmpty()) {
-            for (i in 0..10 step 2) {
-                habits[i] = Habit()
+    fun getOngoingTasks(): List<Task> {
+        // Returns tasks with the current time within its duration
+        // sorted in ascending order by start time
+
+        val tasks = ArrayList<Task>()
+        for (habit in habits) {
+            tasks.addAll(habit.taskList.tasks)
+        }
+
+        val ongoingTasks = ArrayList<Task>()
+        for (task in tasks) {
+            if (
+                task.date == LocalDate.now()
+                && task.startTime.isBefore(LocalTime.now())
+                && task.endTime.isAfter(LocalTime.now())
+            ) {
+                ongoingTasks.add(task)
             }
         }
+
+        return ongoingTasks.sortedBy { it.startTime }
     }
 
-    fun getOngoingTasks(): ArrayList<Task> {
-        return ArrayList()
-    }
+    fun getUpcomingTasks(numTasks: Int): List<Task> {
+        // Gets tasks with the start time after the current time
+        // and returns the first numTasks tasks, as sorted in ascending order by start time
 
-    fun getUpcomingTasks(): ArrayList<Task> {
-        return ArrayList()
-    }
-
-    fun getHabitFromId(id: Int): Habit {
-        return if (id == -1) {
-            // Get smallest available positive integer key
-            // and create new habit with that key
-            var newId = 0
-            while (habits.containsKey(newId)) {
-                newId ++
-            }
-            habits[newId] = Habit(id = newId)
-            habits[newId]!!
-        } else if (habits.containsKey(id)) {
-            return habits[id]!!
-        } else {
-            return Habit(id = id)
+        val tasks = ArrayList<Task>()
+        for (habit in habits) {
+            tasks.addAll(habit.taskList.tasks)
         }
+
+        val upcomingTasks = ArrayList<Task>()
+        for (task in tasks) {
+            if (
+                task.date.isAfter(LocalDate.now())
+                || (
+                    task.date == LocalDate.now()
+                    && task.startTime.isAfter(LocalTime.now())
+                )
+            ) {
+                upcomingTasks.add(task)
+            }
+        }
+
+        upcomingTasks.sortBy { LocalDateTime.of(it.date, it.startTime) }
+        return upcomingTasks.take(numTasks)
     }
 }
 

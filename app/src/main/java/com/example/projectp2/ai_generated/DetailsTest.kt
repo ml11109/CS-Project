@@ -68,7 +68,6 @@ fun TestDetailsScreen(userDataViewModel: UserDataViewModel, navController: NavCo
                     TextButton(
                         onClick = {
                             val newHabit = Habit(
-                                id = 1,
                                 title = habitTitle,
                                 description = habitDescription,
                                 frequency = selectedFrequency

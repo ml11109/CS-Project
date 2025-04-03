@@ -11,9 +11,9 @@ data class Filter(
     var filterDate: Boolean = false
 ) {
     companion object {
-        fun filterHabits(habits: MutableCollection<Habit>): MutableList<Habit> {
+        fun filterHabits(habits: Collection<Habit>): ArrayList<Habit> {
             // TODO: Filter habits based on filter options
-            val filteredHabits = mutableListOf<Habit>()
+            val filteredHabits = arrayListOf<Habit>()
             filteredHabits.addAll(habits) // Temp
             return filteredHabits
         }

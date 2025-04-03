@@ -1,6 +1,7 @@
 package com.example.projectp2
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -45,6 +46,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -52,6 +55,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.projectp2.ai_generated.HabitTrackerScreen
 import com.example.projectp2.ai_generated.TestDetailsScreen
@@ -108,9 +112,10 @@ fun AppNavigation(userDataViewModel: UserDataViewModel, navController: NavHostCo
             HabitsScreen(userDataViewModel, navController, drawerState, scope, Filter(status = filterStatus.ifEmpty { null }))
         }
 
-        composable("details/{habitId}") { backStackEntry ->
-            val habitId = backStackEntry.arguments?.getString("habitId")!!.toInt()
-            DetailsScreen(userDataViewModel, navController, drawerState, scope, habitId)
+        composable("details/{habitIndex}") { backStackEntry ->
+            val habitIndex = backStackEntry.arguments?.getString("habitIndex")!!.toInt()
+            val habit = if (habitIndex == -1) Habit() else userDataViewModel.habits[habitIndex]
+            DetailsScreen(userDataViewModel, navController, drawerState, scope, habit)
         }
 
         composable("stats") { StatsScreen(userDataViewModel, navController, drawerState, scope) }
@@ -176,7 +181,7 @@ fun AppScaffold(
 fun DrawerContent(navController: NavHostController, drawerState: DrawerState, scope: CoroutineScope) {
     val screenRoutes = listOf("home", "habits/", "stats", "achievements", "habits test", "details test")
     val screenTitles = listOf("Home", "Habits", "Statistics", "Achievements", "Habits (AI)", "Details (AI)")
-    var currentScreen by remember { mutableStateOf("home") }
+    val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
 
     ModalDrawerSheet(
         modifier = Modifier.width(300.dp)
@@ -194,21 +199,22 @@ fun DrawerContent(navController: NavHostController, drawerState: DrawerState, sc
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
                 }
                 Spacer(Modifier.width(16.dp))
-                Text("CS Project", fontSize = 22.sp)
+                Text(stringResource(id = R.string.app_name), fontSize = 22.sp)
             }
 
             HorizontalDivider(Modifier.padding(vertical = 8.dp))
 
             for (index in screenRoutes.indices) {
-                NavigationDrawerItem(
-                    label = { Text(text = screenTitles[index], fontSize = 18.sp) },
-                    selected = currentScreen == screenRoutes[index],
-                    onClick = {
-                        scope.launch { drawerState.close() }
-                        navController.navigate(screenRoutes[index])
-                        currentScreen = screenRoutes[index]
-                    }
-                )
+                currentRoute?.contains(screenRoutes[index])?.let {
+                    NavigationDrawerItem(
+                        label = { Text(text = screenTitles[index], fontSize = 18.sp) },
+                        selected = it,
+                        onClick = {
+                            scope.launch { drawerState.close() }
+                            navController.navigate(screenRoutes[index])
+                        }
+                    )
+                }
             }
         }
     }

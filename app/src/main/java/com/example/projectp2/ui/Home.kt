@@ -12,23 +12,28 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.projectp2.AddNewFAB
 import com.example.projectp2.AppScaffold
+import com.example.projectp2.R
 import com.example.projectp2.composables.ScreenSwitcher
 import com.example.projectp2.model.UserDataViewModel
 import com.example.projectp2.model.Task
 import kotlinx.coroutines.CoroutineScope
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun HomeScreen(userDataViewModel: UserDataViewModel, navController: NavController, drawerState: DrawerState, scope: CoroutineScope) {
     val boxModifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(8.dp))
 
     AppScaffold(
-        title = "CS Project",
+        title = stringResource(R.string.app_name),
         navController = navController,
         drawerState = drawerState,
         scope = scope,
@@ -46,18 +51,20 @@ fun HomeScreen(userDataViewModel: UserDataViewModel, navController: NavControlle
 
             MiniScreen(
                 userDataViewModel,
-                boxModifier.fillMaxWidth().height(250.dp)
+                boxModifier.fillMaxWidth().height(300.dp)
             )
             Spacer(Modifier.height(12.dp))
 
             Row(modifier = Modifier.fillMaxWidth().weight(1f)) {
                 TaskColumn(
-                    "Ongoing", userDataViewModel.getOngoingTasks(), navController,
+                    "Ongoing", userDataViewModel.getOngoingTasks(),
+                    userDataViewModel, navController,
                     boxModifier.fillMaxHeight().weight(1f)
                 )
                 Spacer(Modifier.width(12.dp))
                 TaskColumn(
-                    "Upcoming", userDataViewModel.getUpcomingTasks(), navController,
+                    "Upcoming", userDataViewModel.getUpcomingTasks(10),
+                    userDataViewModel, navController,
                     boxModifier.fillMaxHeight().weight(1f)
                 )
             }
@@ -98,7 +105,7 @@ fun MiniScreen(userDataViewModel: UserDataViewModel, modifier: Modifier = Modifi
 }
 
 @Composable
-fun TaskColumn(title: String, tasks: List<Task>, navController: NavController, modifier: Modifier = Modifier) {
+fun TaskColumn(title: String, tasks: List<Task>, userDataViewModel: UserDataViewModel, navController: NavController, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
     ) {
@@ -124,12 +131,71 @@ fun TaskColumn(title: String, tasks: List<Task>, navController: NavController, m
         ) {
             items(tasks.size) { index ->
                 TaskCard(
+                    userDataViewModel,
                     tasks[index],
                     Modifier
                         .fillMaxWidth()
-                        .height(100.dp) // Temp
                         .padding(vertical = 4.dp)
                 )
+            }
+        }
+    }
+}
+
+@Composable
+fun TaskCard(userDataViewModel: UserDataViewModel, task: Task, modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier,
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Task details
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = task.habit.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
+
+                    // Color indicator
+                    Box(
+                        modifier = Modifier
+                            .size(20.dp)
+                            .clip(RoundedCornerShape(percent = 50))
+                            .background(userDataViewModel.getCategoryColor(task.habit.category))
+                    )
+                }
+
+                Text(
+                    text = task.habit.description,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Row(
+                    modifier = Modifier.padding(top = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = task.startTime.format(DateTimeFormatter.ofPattern("hh:mm a")) + " - "
+                                + task.endTime.format(DateTimeFormatter.ofPattern("hh:mm a")) + ", "
+                                + task.date.format(DateTimeFormatter.ofPattern("dd/MM")),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
     }

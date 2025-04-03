@@ -1,7 +1,5 @@
 package com.example.projectp2.ui
 
-import android.app.DatePickerDialog
-import android.widget.DatePicker
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.horizontalScroll
@@ -13,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
@@ -20,26 +19,23 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.projectp2.AddNewFAB
@@ -49,12 +45,13 @@ import com.example.projectp2.composables.DatePickerSwitch
 import com.example.projectp2.composables.DropdownTextBox
 import com.example.projectp2.composables.ScreenSwitcher
 import com.example.projectp2.model.Filter
+import com.example.projectp2.model.Frequency
 import com.example.projectp2.model.Habit
 import com.example.projectp2.model.Task
 import com.example.projectp2.model.UserDataViewModel
 import kotlinx.coroutines.CoroutineScope
 import java.time.LocalDate
-import java.util.Calendar
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun HabitsScreen(userDataViewModel: UserDataViewModel, navController: NavController, drawerState: DrawerState, scope: CoroutineScope, filter: Filter = Filter()) {
@@ -81,13 +78,11 @@ fun HabitsScreen(userDataViewModel: UserDataViewModel, navController: NavControl
             FilterOptions(userDataViewModel, filter, Modifier.height(30.dp))
             Spacer(Modifier.height(12.dp))
 
-            HabitCalendar(boxModifier.fillMaxWidth().height(250.dp))
-            Spacer(Modifier.height(12.dp))
+            HabitCalendar(boxModifier.fillMaxWidth().height(300.dp))
+            HorizontalDivider(Modifier.fillMaxWidth().padding(12.dp))
 
-            HorizontalDivider(Modifier.fillMaxWidth())
-            Spacer(Modifier.height(12.dp))
-
-            HabitList(Filter.filterHabits(userDataViewModel.habits.values), Modifier.fillMaxWidth().weight(1f))
+            HabitList(userDataViewModel, Filter.filterHabits(userDataViewModel.habits), Modifier.fillMaxWidth().weight(1f))
+            // TODO: Placeholder for empty list
         }
     }
 }
@@ -201,7 +196,7 @@ fun HabitCalendarDay(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun HabitList(habits: MutableList<Habit>, modifier: Modifier = Modifier) {
+fun HabitList(userDataViewModel: UserDataViewModel, habits: ArrayList<Habit>, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
     ) {
@@ -210,10 +205,10 @@ fun HabitList(habits: MutableList<Habit>, modifier: Modifier = Modifier) {
         ) {
             items(habits.size) { index ->
                 HabitCard(
+                    userDataViewModel,
                     habits[index],
                     Modifier
                         .fillMaxWidth()
-                        .height(100.dp) // Temp
                         .padding(vertical = 4.dp)
                 )
             }
@@ -222,15 +217,95 @@ fun HabitList(habits: MutableList<Habit>, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun TaskCard(task: Task, modifier: Modifier = Modifier) {
+fun HabitCard(userDataViewModel: UserDataViewModel, habit: Habit, modifier: Modifier = Modifier) {
     Card(
-        modifier = modifier
-    ) {}
-}
+        modifier = modifier,
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Color indicator
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(userDataViewModel.getCategoryColor(habit.category))
+            )
 
-@Composable
-fun HabitCard(habit: Habit, modifier: Modifier = Modifier) {
-    Card(
-        modifier = modifier
-    ) {}
+            Spacer(modifier = Modifier.width(16.dp))
+
+            // Habit details
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = habit.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Text(
+                    text = habit.description,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Row(
+                    modifier = Modifier.padding(top = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.DateRange,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Spacer(modifier = Modifier.width(4.dp))
+
+                    Text(
+                        text = habit.frequency,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Icon(
+                        imageVector = Icons.Outlined.Refresh,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Spacer(modifier = Modifier.width(4.dp))
+
+                    Text(
+                        text = when (habit.frequency) {
+                            Frequency.DAILY -> "${habit.taskList.startTimes.size} times a day"
+                            Frequency.WEEKLY -> "${habit.taskList.daysOfWeek.values.count { it }} times a week"
+                            Frequency.MONTHLY -> "${habit.taskList.daysOfMonth.values.count { it }} times a month"
+                            else -> "Never"
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                LinearProgressIndicator(
+                    progress = { habit.taskList.getProgress() },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp)
+                        .height(6.dp)
+                        .clip(RoundedCornerShape(3.dp)),
+                    color = userDataViewModel.getCategoryColor(habit.category),
+                )
+            }
+        }
+    }
 }

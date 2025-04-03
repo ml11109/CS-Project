@@ -1,5 +1,6 @@
 package com.example.projectp2.ui
 
+import android.app.DatePickerDialog
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -16,7 +17,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
@@ -25,6 +25,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -34,10 +35,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DrawerState
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -47,6 +44,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -56,6 +54,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -75,17 +74,37 @@ import com.example.projectp2.model.Habit
 import com.example.projectp2.model.TaskList
 import com.example.projectp2.model.UserDataViewModel
 import kotlinx.coroutines.CoroutineScope
+import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
 @Composable
-fun DetailsScreen(userDataViewModel: UserDataViewModel, navController: NavController, drawerState: DrawerState, scope: CoroutineScope, habitId: Int) {
+fun DetailsScreen(userDataViewModel: UserDataViewModel, navController: NavController, drawerState: DrawerState, scope: CoroutineScope, habit: Habit) {
     val focusManager = LocalFocusManager.current
-    val habit = userDataViewModel.getHabitFromId(habitId)
     var frequency by remember { mutableStateOf(habit.frequency) }
+    var valid by remember { mutableStateOf(false) }
+    val isNewHabit = habit.title.isEmpty()
+
+    fun checkValidity() {
+        valid = true
+
+        if (habit.title.isBlank() || habit.category == Category.NONE || habit.frequency == Frequency.NONE) valid = false
+
+        if (habit.taskList.startTimes.size == 0) valid = false
+        if (habit.frequency == Frequency.WEEKLY && !habit.taskList.daysOfWeek.values.contains(true)) valid = false
+        if (habit.frequency == Frequency.MONTHLY && !habit.taskList.daysOfMonth.values.contains(true)) valid = false
+
+        if (habit.taskList.startDate.isAfter(habit.taskList.endDate)) valid = false
+
+        for (index in habit.taskList.startTimes.indices) {
+            if (habit.taskList.startTimes[index].isAfter(habit.taskList.endTimes[index])) {
+                valid = false; break
+            }
+        }
+    }
 
     AppScaffold(
-        title = if (habitId == -1) "New Habit" else "Edit Habit",
+        title = if (isNewHabit) "New Habit" else "Edit Habit",
         navController = navController,
         drawerState = drawerState,
         scope = scope
@@ -93,7 +112,7 @@ fun DetailsScreen(userDataViewModel: UserDataViewModel, navController: NavContro
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)
+                .padding(24.dp)
                 .nestedScroll(nestedScrollConnection)
                 .verticalScroll(rememberScrollState())
                 .pointerInput(Unit) {
@@ -101,49 +120,62 @@ fun DetailsScreen(userDataViewModel: UserDataViewModel, navController: NavContro
                 },
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            TitleTextField(habit, Modifier.fillMaxWidth())
-            DescriptionTextField(habit, Modifier.fillMaxWidth())
+            // Title, description and category
+            TitleTextField(habit, Modifier.fillMaxWidth()) { checkValidity() }
+            DescriptionTextField(habit, Modifier.fillMaxWidth()) { checkValidity() }
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Category", Modifier.width(80.dp))
-                CategoryTextField(userDataViewModel, navController, habit, Modifier.fillMaxWidth())
+                Text("Category", Modifier.width(90.dp))
+                Spacer(Modifier.weight(1f))
+                CategoryTextField(userDataViewModel, navController, habit, Modifier.fillMaxWidth()) { checkValidity() }
             }
-
             HorizontalDivider(Modifier.fillMaxWidth().padding(start = 8.dp, end = 8.dp, top = 12.dp))
 
+            // Frequency
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Frequency", Modifier.width(80.dp))
+                Text("Frequency", Modifier.width(90.dp))
                 Spacer(Modifier.weight(1f))
-                FrequencySelector(userDataViewModel, habit, Modifier.fillMaxWidth()) { frequency = it }
+                FrequencySelector(userDataViewModel, habit) {
+                    frequency = it; habit.frequency = it; checkValidity()
+                }
+                Spacer(Modifier.weight(1f))
             }
 
-            TimeSelector(habit, Modifier.fillMaxWidth().heightIn(0.dp, 400.dp))
+            // Time and date
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Time period", Modifier.width(90.dp))
+                Spacer(Modifier.weight(1f))
+                DateSelector(habit) { checkValidity() }
+                Spacer(Modifier.weight(1f))
+            }
+
+            TimeSelector(habit, Modifier.fillMaxWidth().heightIn(0.dp, 400.dp)) { checkValidity() }
 
             if (frequency == Frequency.WEEKLY) {
                 Text("Days")
-                DayOfWeekSelector(habit, Modifier.fillMaxWidth())
+                DayOfWeekSelector(habit, Modifier.fillMaxWidth()) { checkValidity() }
             } else if (frequency == Frequency.MONTHLY) {
                 Text("Days")
-                DayOfMonthSelector(habit, Modifier.fillMaxWidth())
+                DayOfMonthSelector(habit, Modifier.fillMaxWidth()) { checkValidity() }
             }
 
-            HorizontalDivider(Modifier.fillMaxWidth().padding(start = 8.dp, end = 8.dp, bottom = 12.dp))
-
+            // Advanced settings
+            HorizontalDivider(Modifier.fillMaxWidth().padding(start = 8.dp, end = 8.dp, top = 12.dp, bottom = 12.dp))
             AdvancedSettings(habit, Modifier.fillMaxWidth())
-
             HorizontalDivider(Modifier.fillMaxWidth().padding(start = 8.dp, end = 8.dp, top = 12.dp))
 
+            // Cancel and save buttons
             Row(
                 modifier = Modifier.fillMaxWidth().padding(end = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Spacer(Modifier.weight(1f))
@@ -161,13 +193,20 @@ fun DetailsScreen(userDataViewModel: UserDataViewModel, navController: NavContro
                 ) {
                     Text("Cancel", style = MaterialTheme.typography.titleMedium)
                 }
+                Spacer(Modifier.width(12.dp))
 
                 Button(
                     onClick = {
-                        userDataViewModel.habits[habit.id] = habit
+                        checkValidity()
+                        if (!valid) return@Button
+
+                        if (isNewHabit) {
+                            userDataViewModel.habits.add(habit)
+                        }
+                        habit.taskList.createTasks(habit)
                         navController.popBackStack()
                     },
-                    enabled = !(habit.title.isBlank() || habit.category == Category.NONE || habit.frequency == Frequency.NONE),
+                    enabled = valid,
                     modifier = Modifier.width(100.dp),
                     shape = RoundedCornerShape(4.dp)
                 ) {
@@ -179,7 +218,7 @@ fun DetailsScreen(userDataViewModel: UserDataViewModel, navController: NavContro
 }
 
 @Composable
-fun TitleTextField(habit: Habit, modifier: Modifier = Modifier) {
+fun TitleTextField(habit: Habit, modifier: Modifier = Modifier, checkValidity: () -> Unit) {
     BoxWithConstraints {
         val boxWithConstraintsScope = this
         ExpandingTextField(
@@ -187,32 +226,33 @@ fun TitleTextField(habit: Habit, modifier: Modifier = Modifier) {
             hint = "Enter title...",
             width = boxWithConstraintsScope.maxWidth - 44.dp,
             keyboardOptions = KeyboardOptions(
-                imeAction = ImeAction.Next,
+                imeAction = ImeAction.Done,
                 capitalization = KeyboardCapitalization.Sentences
             ),
             showHintIfEmpty = true
         ) {
             habit.title = it
+            checkValidity()
         }
     }
 }
 
 @Composable
-fun DescriptionTextField(habit: Habit, modifier: Modifier = Modifier) {
+fun DescriptionTextField(habit: Habit, modifier: Modifier = Modifier, checkValidity: () -> Unit) {
     var description by remember { mutableStateOf(habit.description) }
 
     OutlinedTextField(
         value = description,
-        onValueChange = { description = it; habit.description = it },
+        onValueChange = { description = it; habit.description = it; checkValidity() },
         label = { Text("Description") },
         minLines = 2,
         modifier = modifier,
-        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done)
     )
 }
 
 @Composable
-fun CategoryTextField(userDataViewModel: UserDataViewModel, navController: NavController, habit: Habit, modifier: Modifier = Modifier) {
+fun CategoryTextField(userDataViewModel: UserDataViewModel, navController: NavController, habit: Habit, modifier: Modifier = Modifier, checkValidity: () -> Unit) {
     CustomDropdownSelector(
         options = userDataViewModel.categories,
         modifier = modifier,
@@ -222,16 +262,17 @@ fun CategoryTextField(userDataViewModel: UserDataViewModel, navController: NavCo
         navController = navController
     ) {
         habit.category = it
+        checkValidity()
     }
 }
 
 @Composable
 fun FrequencySelector(userDataViewModel: UserDataViewModel, habit: Habit, modifier: Modifier = Modifier, onFrequencyChange: (String) -> Unit = {}) {
-    OptionsRow(userDataViewModel.frequencyTypes, modifier, habit.frequency) { onFrequencyChange(it); habit.frequency = it }
+    OptionsRow(userDataViewModel.frequencyTypes, modifier, habit.frequency) { onFrequencyChange(it) }
 }
 
 @Composable
-fun TimeSelector(habit: Habit, modifier: Modifier = Modifier) {
+fun TimeSelector(habit: Habit, modifier: Modifier = Modifier, checkValidity: () -> Unit) {
     val startTimes = remember { mutableStateListOf<LocalTime>().apply { addAll(habit.taskList.startTimes) } }
     val endTimes = remember { mutableStateListOf<LocalTime>().apply { addAll(habit.taskList.endTimes) } }
 
@@ -250,6 +291,7 @@ fun TimeSelector(habit: Habit, modifier: Modifier = Modifier) {
                     endTimes.add(LocalTime.of(0, 0))
                     habit.taskList.startTimes.add(LocalTime.of(0, 0))
                     habit.taskList.endTimes.add(LocalTime.of(0, 0))
+                    checkValidity()
                 }
             ) {
                 Icon(Icons.Default.Add, "Add")
@@ -263,23 +305,29 @@ fun TimeSelector(habit: Habit, modifier: Modifier = Modifier) {
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(startTimes[index].format(DateTimeFormatter.ofPattern("hh:mm a")))
+                    Text(
+                        startTimes[index].format(DateTimeFormatter.ofPattern("hh:mm a")),
+                        color = if (startTimes[index].isAfter(endTimes[index])) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
+                    )
                     TimePickerButton(
-                        time = startTimes[index],
-                        modifier = Modifier.size(30.dp)
+                        time = startTimes[index]
                     ) { _, hour, minute ->
                         startTimes[index] = LocalTime.of(hour, minute)
                         habit.taskList.startTimes[index] = startTimes[index]
+                        checkValidity()
                     }
 
                     Text("to")
-                    Text(endTimes[index].format(DateTimeFormatter.ofPattern("hh:mm a")))
+                    Text(
+                        endTimes[index].format(DateTimeFormatter.ofPattern("hh:mm a")),
+                        color = if (startTimes[index].isAfter(endTimes[index])) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
+                    )
                     TimePickerButton(
-                        time = endTimes[index],
-                        modifier = Modifier.size(30.dp)
+                        time = endTimes[index]
                     ) { _, hour, minute ->
                         endTimes[index] = LocalTime.of(hour, minute)
                         habit.taskList.endTimes[index] = endTimes[index]
+                        checkValidity()
                     }
 
                     IconButton(
@@ -288,6 +336,7 @@ fun TimeSelector(habit: Habit, modifier: Modifier = Modifier) {
                             endTimes.removeAt(index)
                             habit.taskList.startTimes.removeAt(index)
                             habit.taskList.endTimes.removeAt(index)
+                            checkValidity()
                         }
                     ) {
                         Icon(Icons.Default.Delete, "Delete")
@@ -299,8 +348,8 @@ fun TimeSelector(habit: Habit, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun DayOfWeekSelector(habit: Habit, modifier: Modifier = Modifier) {
-    val selectedDays = remember { mutableStateListOf<Int>().apply { addAll(habit.taskList.daysOfWeek) } }
+fun DayOfWeekSelector(habit: Habit, modifier: Modifier = Modifier, checkValidity: () -> Unit) {
+    val selectedDays = remember { mutableStateMapOf<Int, Boolean>().apply { habit.taskList.daysOfWeek.forEach { put(it.key, it.value) } } }
 
     Row(
         modifier = modifier
@@ -313,24 +362,24 @@ fun DayOfWeekSelector(habit: Habit, modifier: Modifier = Modifier) {
                     .padding(4.dp)
                     .clip(RoundedCornerShape(percent = 50))
                     .background(
-                        if (day in selectedDays) MaterialTheme.colorScheme.primary
+                        if (selectedDays[day] == true) MaterialTheme.colorScheme.primary
                         else Color.Transparent
                     )
                     .clickable {
-                        if (day in selectedDays) {
-                            selectedDays.remove(day)
-                            habit.taskList.daysOfMonth.remove(day)
+                        if (selectedDays[day] == true) {
+                            selectedDays[day] = false
+                            habit.taskList.daysOfWeek[day] = false
                         } else {
-                            selectedDays.add(day)
-                            habit.taskList.daysOfMonth.add(day)
+                            selectedDays[day] = true
+                            habit.taskList.daysOfWeek[day] = true
                         }
+                        checkValidity()
                     },
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = TaskList.daysOfWeek[day]!![0].toString(),
-                    color = if (day in selectedDays) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
-                    fontWeight = if (day in selectedDays) FontWeight.Bold else FontWeight.Normal
+                    text = TaskList.daysOfWeekNames[day]!!.first().toString(),
+                    color = if (selectedDays[day] == true) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
                 )
             }
         }
@@ -338,8 +387,8 @@ fun DayOfWeekSelector(habit: Habit, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun DayOfMonthSelector(habit: Habit, modifier: Modifier = Modifier) {
-    val selectedDays = remember { mutableStateListOf<Int>().apply { addAll(habit.taskList.daysOfMonth) } }
+fun DayOfMonthSelector(habit: Habit, modifier: Modifier = Modifier, checkValidity: () -> Unit) {
+    val selectedDays = remember { mutableStateMapOf<Int, Boolean>().apply { habit.taskList.daysOfWeek.forEach { put(it.key, it.value) } } }
 
     for (week in 0..4) {
         Row(
@@ -356,29 +405,93 @@ fun DayOfMonthSelector(habit: Habit, modifier: Modifier = Modifier) {
                             .padding(4.dp)
                             .clip(RoundedCornerShape(percent = 50))
                             .background(
-                                if (day in selectedDays) MaterialTheme.colorScheme.primary
+                                if (selectedDays[day] == true) MaterialTheme.colorScheme.primary
                                 else Color.Transparent
                             )
                             .clickable {
-                                if (day in selectedDays) {
-                                    selectedDays.remove(day)
-                                    habit.taskList.daysOfMonth.remove(day)
+                                if (selectedDays[day] == true) {
+                                    selectedDays[day] = false
+                                    habit.taskList.daysOfMonth[day] = false
                                 } else {
-                                    selectedDays.add(day)
-                                    habit.taskList.daysOfMonth.add(day)
+                                    selectedDays[day] = true
+                                    habit.taskList.daysOfMonth[day] = true
                                 }
+                                checkValidity()
                             },
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = day.toString(),
-                            color = if (day in selectedDays) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+                            color = if (selectedDays[day] == true) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
                         )
                     }
                 } else {
                     Box(modifier = Modifier.weight(1f).aspectRatio(1f))
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun DateSelector(habit: Habit, modifier: Modifier = Modifier, checkValidity: () -> Unit) {
+    val context = LocalContext.current
+    var startDate by remember { mutableStateOf(habit.taskList.startDate) }
+    var endDate by remember { mutableStateOf(habit.taskList.endDate) }
+
+    val onStartDateClick = {
+        DatePickerDialog(
+            context,
+            { _, year, month, dayOfMonth ->
+                startDate = LocalDate.of(year, month + 1, dayOfMonth + 1)
+                habit.taskList.startDate = startDate
+                checkValidity()
+            },
+            startDate.year,
+            startDate.monthValue - 1,
+            startDate.dayOfMonth
+        ).show()
+    }
+
+    val onEndDateClick = {
+        DatePickerDialog(
+            context,
+            { _, year, month, dayOfMonth ->
+                endDate = LocalDate.of(year, month + 1, dayOfMonth + 1)
+                habit.taskList.endDate = endDate
+                checkValidity()
+            },
+            endDate.year,
+            endDate.monthValue - 1,
+            endDate.dayOfMonth
+        ).show()
+    }
+
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            startDate.format(DateTimeFormatter.ofPattern("d MMM")),
+            modifier = Modifier.clickable(onClick = onStartDateClick),
+            color = if (startDate.isAfter(endDate)) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
+        )
+        IconButton(
+            onClick = { onStartDateClick() }
+        ) {
+            Icon(Icons.Default.DateRange, "Date")
+        }
+        Text("to", modifier = Modifier.padding(end = 12.dp))
+
+        Text(
+            endDate.format(DateTimeFormatter.ofPattern("d MMM")),
+            modifier = Modifier.clickable(onClick = onEndDateClick),
+            color = if (startDate.isAfter(endDate)) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
+        )
+        IconButton(
+            onClick = { onEndDateClick() }
+        ) {
+            Icon(Icons.Default.DateRange, "Date")
         }
     }
 }
