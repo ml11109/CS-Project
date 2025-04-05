@@ -3,19 +3,27 @@ package com.example.projectp2.model
 import java.time.LocalDate
 
 data class Filter(
-    var title: String? = null,
-    var status: String? = null,
-    var category: String? = null,
-    var frequency: String? = null,
+    var title: String = "",
+    var status: String = Status.ALL,
+    var category: String = Category.ALL,
+    var frequency: String = Frequency.ALL,
     var date: LocalDate = LocalDate.now(),
     var filterDate: Boolean = false
 ) {
-    companion object {
-        fun filterHabits(habits: Collection<Habit>): ArrayList<Habit> {
-            // TODO: Filter habits based on filter options
-            val filteredHabits = arrayListOf<Habit>()
-            filteredHabits.addAll(habits) // Temp
-            return filteredHabits
+    fun filterHabits(habits: ArrayList<Habit>): ArrayList<Habit> {
+        val filteredHabits = arrayListOf<Habit>()
+
+        for (habit in habits) {
+            var match = true
+            if (this.title != "" && !habit.title.contains(this.title)) match = false
+            if (this.status != Status.ALL && this.status != Status.ALL && habit.getStatus() != this.status) match = false
+            if (this.category != Category.ALL && this.category != Category.ALL && habit.category != this.category) match = false
+            if (this.frequency != Frequency.ALL && this.frequency != Frequency.ALL && habit.frequency != this.frequency) match = false
+            if (this.filterDate && (this.date.isBefore(habit.taskList.startDate) || this.date.isAfter(habit.taskList.endDate))) match = false
+
+            if (match) filteredHabits.add(habit)
         }
+
+        return filteredHabits
     }
 }

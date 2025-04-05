@@ -486,7 +486,7 @@ fun DateSelector(habit: Habit, oldHabit: Habit, isNewHabit: Boolean, modifier: M
                 checkValidity()
             },
             startDate.year,
-            startDate.monthValue - 1,
+            startDate.month.ordinal,
             startDate.dayOfMonth
         ).show()
     }
@@ -500,7 +500,7 @@ fun DateSelector(habit: Habit, oldHabit: Habit, isNewHabit: Boolean, modifier: M
                 checkValidity()
             },
             endDate.year,
-            endDate.monthValue - 1,
+            endDate.month.ordinal,
             endDate.dayOfMonth
         ).show()
     }

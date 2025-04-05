@@ -1,6 +1,7 @@
 package com.example.projectp2.model
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -46,11 +47,14 @@ data class Habit(
     var category: String = Category.NONE,
     var frequency: String = Frequency.NONE,
     var taskList: TaskList = TaskList(),
-
     var sendNotifications: Boolean = true,
     var numExceptionsPerMonth: Int = 0,
     var allowExceptions: Boolean = false
 ) {
+    fun getStatus(): String {
+        return if (taskList.getProgress() == 1f) "Completed" else "Ongoing"
+    }
+
     fun copy(): Habit {
         val newHabit = Habit(
             title,
@@ -112,11 +116,13 @@ fun HabitCard(
                         fontWeight = FontWeight.Bold
                     )
 
-                    Text(
-                        text = habit.description,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    if (habit.description.isNotBlank()) {
+                        Text(
+                            text = habit.description,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Row(

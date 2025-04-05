@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,35 +20,22 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.outlined.Refresh
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DrawerState
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.projectp2.AddNewFAB
@@ -58,15 +44,15 @@ import com.example.projectp2.composables.BasicExpandingSearchBar
 import com.example.projectp2.composables.DatePickerSwitch
 import com.example.projectp2.composables.DropdownTextBox
 import com.example.projectp2.composables.ScreenSwitcher
+import com.example.projectp2.model.Category
 import com.example.projectp2.model.Filter
 import com.example.projectp2.model.Frequency
 import com.example.projectp2.model.Habit
 import com.example.projectp2.model.HabitCard
-import com.example.projectp2.model.Task
+import com.example.projectp2.model.Status
 import com.example.projectp2.model.UserDataViewModel
 import kotlinx.coroutines.CoroutineScope
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 @Composable
 fun HabitsScreen(userDataViewModel: UserDataViewModel, navController: NavController, drawerState: DrawerState, scope: CoroutineScope) {
@@ -96,14 +82,28 @@ fun HabitsScreen(userDataViewModel: UserDataViewModel, navController: NavControl
                         detectTapGestures { focusManager.clearFocus() }
                     }
             ) {
-                FilterOptions(userDataViewModel, filter, Modifier.height(30.dp))
+                val filteredHabits = remember { mutableStateListOf<Habit>().apply { addAll(filter.filterHabits(userDataViewModel.habits)) } }
+
+                FilterOptions(userDataViewModel, filter, Modifier.height(30.dp)) {
+                    filteredHabits.clear(); filteredHabits.addAll(filter.filterHabits(userDataViewModel.habits))
+                }
                 Spacer(Modifier.height(12.dp))
 
                 TaskList(boxModifier.fillMaxWidth().height(maxHeight.times(0.35f)))
                 HorizontalDivider(Modifier.fillMaxWidth().padding(12.dp))
 
-                HabitList(userDataViewModel, navController, Filter.filterHabits(userDataViewModel.habits), Modifier.fillMaxWidth().weight(1f))
-                // TODO: Placeholder for empty list
+                if (filteredHabits.isEmpty()) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().weight(1f),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(Icons.Default.Info, "Info", modifier = Modifier.size(36.dp).alpha(0.5f))
+                        Text("No habits found", style = MaterialTheme.typography.titleMedium, modifier = Modifier.alpha(0.5f).padding(top = 16.dp, bottom = 64.dp))
+                    }
+                } else {
+                    HabitList(userDataViewModel, navController, filteredHabits, Modifier.fillMaxWidth().weight(1f))
+                }
             }
         }
     }
@@ -117,7 +117,7 @@ fun MiniTasksScreen(userDataViewModel: UserDataViewModel, modifier: Modifier = M
 }
 
 @Composable
-fun FilterOptions(userDataViewModel: UserDataViewModel, filter: Filter, modifier: Modifier = Modifier) {
+fun FilterOptions(userDataViewModel: UserDataViewModel, filter: Filter, modifier: Modifier = Modifier, onFilterChange: () -> Unit) {
     val scrollState = rememberScrollState()
 
     Row(
@@ -125,36 +125,39 @@ fun FilterOptions(userDataViewModel: UserDataViewModel, filter: Filter, modifier
         verticalAlignment = Alignment.CenterVertically
     ) {
         Row(
-            modifier = modifier.weight(1f).horizontalScroll(scrollState),
+            modifier = Modifier.weight(1f).horizontalScroll(scrollState),
             verticalAlignment = Alignment.CenterVertically
         ) {
             DropdownTextBox(
-                listOf("All", "Ongoing", "Completed"),
-                modifier = modifier.width(100.dp).background(MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(4.dp)),
+                arrayListOf(Status.ALL) + userDataViewModel.statusTypes,
+                modifier = Modifier.width(100.dp).background(MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(4.dp)),
                 textStyle = MaterialTheme.typography.bodySmall,
                 initialOption = "Status"
             ) {
                 filter.status = it
+                onFilterChange()
             }
-            Spacer(modifier.width(8.dp))
+            Spacer(Modifier.width(8.dp))
 
             DropdownTextBox(
-                userDataViewModel.categories,
-                modifier = modifier.width(100.dp).background(MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(4.dp)),
+                arrayListOf(Category.ALL) + userDataViewModel.categories,
+                modifier = Modifier.width(100.dp).background(MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(4.dp)),
                 textStyle = MaterialTheme.typography.bodySmall,
                 initialOption = "Category"
             ) {
                 filter.category = it
+                onFilterChange()
             }
-            Spacer(modifier.width(8.dp))
+            Spacer(Modifier.width(8.dp))
 
             DropdownTextBox(
-                userDataViewModel.frequencyTypes,
-                modifier = modifier.width(100.dp).background(MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(4.dp)),
+                arrayListOf(Frequency.ALL) + userDataViewModel.frequencyTypes,
+                modifier = Modifier.width(100.dp).background(MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(4.dp)),
                 textStyle = MaterialTheme.typography.bodySmall,
                 initialOption = "Frequency"
             ) {
                 filter.frequency = it
+                onFilterChange()
             }
         }
 
@@ -162,22 +165,26 @@ fun FilterOptions(userDataViewModel: UserDataViewModel, filter: Filter, modifier
             verticalAlignment = Alignment.CenterVertically
         ) {
             BasicExpandingSearchBar(
-                modifier = modifier.padding(start = 8.dp, end = 4.dp),
+                modifier = Modifier.padding(start = 8.dp, end = 4.dp),
                 textStyle = MaterialTheme.typography.bodyMedium,
                 height = 24.dp
             ) {
                 filter.title = it
+                onFilterChange()
             }
 
             DatePickerSwitch(
                 date = filter.date,
-                modifier = modifier,
+                modifier = Modifier.width(40.dp).height(30.dp),
                 on = filter.filterDate,
                 onDateSelect = { _, year, month, day ->
-                    filter.date = LocalDate.of(year, month, day)
+                    filter.date = LocalDate.of(year, month + 1, day)
+                    filter.filterDate = true
+                    onFilterChange()
                 },
                 onSwitchOff = {
                     filter.filterDate = false
+                    onFilterChange()
                 }
             )
         }
@@ -219,20 +226,18 @@ fun HabitCalendarWeek(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun HabitList(userDataViewModel: UserDataViewModel, navController: NavController, habits: ArrayList<Habit>, modifier: Modifier = Modifier) {
-    val habitStateList = remember { mutableStateListOf<Habit>().apply { addAll(habits) } }
-
+fun HabitList(userDataViewModel: UserDataViewModel, navController: NavController, habits: SnapshotStateList<Habit>, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
     ) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(habitStateList.size) { index ->
+            items(habits.size) { index ->
                 HabitCard(
                     userDataViewModel,
-                    habitStateList[index],
+                    habits[index],
                     Modifier.fillMaxWidth(),
                     onHabitSelect = {
                         // TODO: Set filter to only show this one
@@ -245,7 +250,7 @@ fun HabitList(userDataViewModel: UserDataViewModel, navController: NavController
                     },
                     onHabitDelete = {
                         userDataViewModel.habits.remove(habits[index])
-                        habitStateList.removeAt(index)
+                        habits.removeAt(index)
                     }
                 )
             }

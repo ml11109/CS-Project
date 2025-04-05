@@ -1,6 +1,7 @@
 package com.example.projectp2.model
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,9 +9,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,7 +34,35 @@ data class Task(
     val completed: Boolean = false,
     val exempted: Boolean = false,
     val notes: String = ""
-)
+) {
+    fun isOngoing(): Boolean {
+        return (
+            this.date == LocalDate.now()
+            && this.startTime.isBefore(LocalTime.now())
+            && this.endTime.isAfter(LocalTime.now())
+        )
+    }
+
+    fun isCompleted(): Boolean {
+        return (
+            this.date.isBefore(LocalDate.now())
+            || (
+                this.date == LocalDate.now()
+                && this.endTime.isBefore(LocalTime.now())
+            )
+        )
+    }
+
+    fun isUpcoming(): Boolean {
+        return (
+            this.date.isAfter(LocalDate.now())
+            || (
+                this.date == LocalDate.now()
+                && this.startTime.isAfter(LocalTime.now())
+            )
+        )
+    }
+}
 
 @Composable
 fun TaskCard(userDataViewModel: UserDataViewModel, task: Task, modifier: Modifier = Modifier) {
@@ -42,41 +73,50 @@ fun TaskCard(userDataViewModel: UserDataViewModel, task: Task, modifier: Modifie
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Task details
             Column(
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = task.habit.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.weight(1f))
-
-                    // Color indicator
                     Box(
                         modifier = Modifier
                             .size(20.dp)
                             .clip(RoundedCornerShape(percent = 50))
                             .background(userDataViewModel.getCategoryColor(task.habit.category))
                     )
+                    Spacer(Modifier.width(8.dp))
+
+                    Text(
+                        text = task.habit.title,
+                        modifier = Modifier.weight(1f),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(Modifier.width(8.dp))
+
+                    Checkbox(
+                        modifier = Modifier.size(20.dp),
+                        checked = task.completed,
+                        onCheckedChange = null
+                    )
                 }
 
-                Text(
-                    text = task.habit.description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                if (task.habit.description.isNotBlank()) {
+                    Text(
+                        text = task.habit.description,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
 
                 Row(
-                    modifier = Modifier.padding(top = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(

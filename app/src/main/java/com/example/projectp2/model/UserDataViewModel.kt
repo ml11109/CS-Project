@@ -2,12 +2,15 @@ package com.example.projectp2.model
 
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
-import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.LocalTime
 
 class UserDataViewModel : ViewModel() {
     var habits = arrayListOf<Habit>()
+
+    val statusTypes = arrayListOf(
+        Status.ONGOING,
+        Status.COMPLETED
+    )
 
     val categories = arrayListOf(
         Category.PERSONAL,
@@ -49,19 +52,12 @@ class UserDataViewModel : ViewModel() {
         // Returns tasks with the current time within its duration
         // sorted in ascending order by start time
 
-        val tasks = ArrayList<Task>()
-        for (habit in habits) {
-            tasks.addAll(habit.taskList.tasks)
-        }
-
         val ongoingTasks = ArrayList<Task>()
-        for (task in tasks) {
-            if (
-                task.date == LocalDate.now()
-                && task.startTime.isBefore(LocalTime.now())
-                && task.endTime.isAfter(LocalTime.now())
-            ) {
-                ongoingTasks.add(task)
+        for (habit in habits) {
+            for (task in habit.taskList.tasks) {
+                if (task.isOngoing()) {
+                    ongoingTasks.add(task)
+                }
             }
         }
 
@@ -72,21 +68,12 @@ class UserDataViewModel : ViewModel() {
         // Gets tasks with the end time before the current time
         // and returns the first numTasks tasks, as sorted in descending order by end time
 
-        val tasks = ArrayList<Task>()
-        for (habit in habits) {
-            tasks.addAll(habit.taskList.tasks)
-        }
-
         val completedTasks = ArrayList<Task>()
-        for (task in tasks) {
-            if (
-                task.date.isBefore(LocalDate.now())
-                || (
-                        task.date == LocalDate.now()
-                                && task.endTime.isBefore(LocalTime.now())
-                        )
-            ) {
-                completedTasks.add(task)
+        for (habit in habits) {
+            for (task in habit.taskList.tasks) {
+                if (task.isCompleted()) {
+                    completedTasks.add(task)
+                }
             }
         }
 
@@ -98,21 +85,12 @@ class UserDataViewModel : ViewModel() {
         // Gets tasks with the start time after the current time
         // and returns the first numTasks tasks, as sorted in ascending order by start time
 
-        val tasks = ArrayList<Task>()
-        for (habit in habits) {
-            tasks.addAll(habit.taskList.tasks)
-        }
-
         val upcomingTasks = ArrayList<Task>()
-        for (task in tasks) {
-            if (
-                task.date.isAfter(LocalDate.now())
-                || (
-                    task.date == LocalDate.now()
-                    && task.startTime.isAfter(LocalTime.now())
-                )
-            ) {
-                upcomingTasks.add(task)
+        for (habit in habits) {
+            for (task in habit.taskList.tasks) {
+                if (task.isUpcoming()) {
+                    upcomingTasks.add(task)
+                }
             }
         }
 
@@ -121,7 +99,14 @@ class UserDataViewModel : ViewModel() {
     }
 }
 
+object Status {
+    const val ALL = "All"
+    const val ONGOING = "Ongoing"
+    const val COMPLETED = "Completed"
+}
+
 object Category {
+    const val ALL = "All"
     const val PERSONAL = "Personal"
     const val WORK = "Work"
     const val HEALTH = "Health"
@@ -130,6 +115,7 @@ object Category {
 }
 
 object Frequency {
+    const val ALL = "All"
     const val DAILY = "Daily"
     const val WEEKLY = "Weekly"
     const val MONTHLY = "Monthly"

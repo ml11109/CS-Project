@@ -1,6 +1,5 @@
 todo:
 - Create updateTasks method in TaskList that preserves completed tasks
-- Show completion in MiniTaskList in home screen
 
 - Create home page layout /
 - Create habits page layout /
@@ -8,7 +7,7 @@ todo:
 - Create stats & achievements page layout
 
 - Basic habit creation /
-- Habit display and filtering
+- Habit display and filtering /
 - Task display on habits page
 - Ongoing tasks display on home page
 - Completed & upcoming tasks display on home page /

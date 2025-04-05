@@ -89,10 +89,10 @@ fun InputDialog(title: String, onValueSet: (String) -> Unit, onDismiss: () -> Un
 
 /*
 // Button that shows a date picker
-val calendar = Calendar.getInstance()
+val date = LocalDate.now()
 
-DeadlineDatePicker(calendar) { _, year, month, day ->
-    calendar.set(year, month, day)
+DeadlineDatePicker(calendar) { _, year, month, dayOfMonth ->
+    date = LocalDate.of(year, month + 1, dayOfMonth)
 }
  */
 
@@ -107,7 +107,7 @@ fun DatePickerButton(date: LocalDate, modifier: Modifier = Modifier, onDateSelec
                 context,
                 onDateSelect,
                 date.year,
-                date.monthValue,
+                date.month.ordinal,
                 date.dayOfMonth
             ).show()
         }

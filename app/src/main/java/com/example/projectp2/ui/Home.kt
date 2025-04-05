@@ -158,15 +158,14 @@ fun MiniTaskList(title: String, tasks: List<Task>, userDataViewModel: UserDataVi
         }
 
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(16.dp),
+            modifier = Modifier.fillMaxSize().padding(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(tasks.size) { index ->
                 TaskCard(
                     userDataViewModel,
                     tasks[index],
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp)
+                    Modifier.fillMaxWidth()
                 )
             }
         }
