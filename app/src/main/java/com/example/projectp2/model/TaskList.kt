@@ -38,8 +38,41 @@ data class TaskList(
         }
     }
 
+    fun updateTasks(oldHabit: Habit, habit: Habit) {
+        // If frequency has changed, creates new tasks
+        // Otherwise, preserves only old tasks that have passed and are still within the time period
+        // and creates new ones to fill in the new time period
+        // Note that only new tasks will follow updated times
+    }
+
     fun getProgress(): Float {
         return if (tasks.isEmpty()) 0f else tasks.filter { it.completed || it.exempted }.size.toFloat() / tasks.size.toFloat()
+    }
+
+    fun copy(habit: Habit): TaskList {
+        val newTasks = ArrayList<Task>()
+        for (task in tasks) {
+            newTasks.add(task.copy(habit = habit))
+        }
+
+        val startTimes = ArrayList<LocalTime>()
+        for (time in this.startTimes) {
+            startTimes.add(LocalTime.from(time))
+        }
+        val endTimes = ArrayList<LocalTime>()
+        for (time in this.endTimes) {
+            endTimes.add(LocalTime.from(time))
+        }
+
+        return TaskList(
+            newTasks,
+            LocalDate.from(startDate),
+            LocalDate.from(endDate),
+            startTimes,
+            endTimes,
+            HashMap(daysOfWeek),
+            HashMap(daysOfMonth)
+        )
     }
 
     companion object {

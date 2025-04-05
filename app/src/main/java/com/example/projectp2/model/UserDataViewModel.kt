@@ -41,6 +41,10 @@ class UserDataViewModel : ViewModel() {
         Frequency.MONTHLY
     )
 
+    val habitTemplates = arrayListOf(
+        Habit() // TODO: Create habit templates
+    )
+
     fun getOngoingTasks(): List<Task> {
         // Returns tasks with the current time within its duration
         // sorted in ascending order by start time
@@ -62,6 +66,32 @@ class UserDataViewModel : ViewModel() {
         }
 
         return ongoingTasks.sortedBy { it.startTime }
+    }
+
+    fun getCompletedTasks(numTasks: Int): List<Task> {
+        // Gets tasks with the end time before the current time
+        // and returns the first numTasks tasks, as sorted in descending order by end time
+
+        val tasks = ArrayList<Task>()
+        for (habit in habits) {
+            tasks.addAll(habit.taskList.tasks)
+        }
+
+        val completedTasks = ArrayList<Task>()
+        for (task in tasks) {
+            if (
+                task.date.isBefore(LocalDate.now())
+                || (
+                        task.date == LocalDate.now()
+                                && task.endTime.isBefore(LocalTime.now())
+                        )
+            ) {
+                completedTasks.add(task)
+            }
+        }
+
+        completedTasks.sortByDescending { LocalDateTime.of(it.date, it.endTime) }
+        return completedTasks.take(numTasks)
     }
 
     fun getUpcomingTasks(numTasks: Int): List<Task> {

@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -56,14 +57,15 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.text.isDigitsOnly
 import androidx.navigation.NavController
 import com.example.projectp2.AppScaffold
+import com.example.projectp2.composables.BasicAlertDialog
 import com.example.projectp2.composables.CustomDropdownSelector
 import com.example.projectp2.composables.ExpandingTextField
 import com.example.projectp2.composables.OptionsRow
@@ -79,11 +81,12 @@ import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
 @Composable
-fun DetailsScreen(userDataViewModel: UserDataViewModel, navController: NavController, drawerState: DrawerState, scope: CoroutineScope, habit: Habit) {
-    val focusManager = LocalFocusManager.current
-    var frequency by remember { mutableStateOf(habit.frequency) }
+fun DetailsScreen(userDataViewModel: UserDataViewModel, navController: NavController, drawerState: DrawerState, scope: CoroutineScope, habitType: Int, oldHabit: Habit) {
+    val habit = oldHabit.copy()
+    val isNewHabit = habitType != 1
     var valid by remember { mutableStateOf(false) }
-    val isNewHabit = habit.title.isEmpty()
+    var frequency by remember { mutableStateOf(habit.frequency) }
+    val focusManager = LocalFocusManager.current
 
     fun checkValidity() {
         valid = true
@@ -95,12 +98,25 @@ fun DetailsScreen(userDataViewModel: UserDataViewModel, navController: NavContro
         if (habit.frequency == Frequency.MONTHLY && !habit.taskList.daysOfMonth.values.contains(true)) valid = false
 
         if (habit.taskList.startDate.isAfter(habit.taskList.endDate)) valid = false
+        if (habit.taskList.startDate.isBefore(LocalDate.now())) valid = false
+        if (!isNewHabit && habit.taskList.startDate != oldHabit.taskList.startDate) valid = false
 
         for (index in habit.taskList.startTimes.indices) {
             if (habit.taskList.startTimes[index].isAfter(habit.taskList.endTimes[index])) {
                 valid = false; break
             }
         }
+    }
+
+    fun saveHabit() {
+        if (isNewHabit) {
+            userDataViewModel.habits.add(habit)
+            habit.taskList.createTasks(habit)
+        } else {
+            userDataViewModel.habits[userDataViewModel.habits.indexOf(oldHabit)] = habit
+            habit.taskList.updateTasks(oldHabit, habit)
+        }
+        navController.popBackStack()
     }
 
     AppScaffold(
@@ -154,7 +170,7 @@ fun DetailsScreen(userDataViewModel: UserDataViewModel, navController: NavContro
             ) {
                 Text("Time period", Modifier.width(90.dp))
                 Spacer(Modifier.weight(1f))
-                DateSelector(habit) { checkValidity() }
+                DateSelector(habit, oldHabit, isNewHabit) { checkValidity() }
                 Spacer(Modifier.weight(1f))
             }
 
@@ -195,22 +211,34 @@ fun DetailsScreen(userDataViewModel: UserDataViewModel, navController: NavContro
                 }
                 Spacer(Modifier.width(12.dp))
 
+                var showAlertDialog by remember { mutableStateOf(false) }
                 Button(
                     onClick = {
                         checkValidity()
                         if (!valid) return@Button
 
-                        if (isNewHabit) {
-                            userDataViewModel.habits.add(habit)
+                        if (!isNewHabit && frequency != oldHabit.frequency) {
+                            showAlertDialog = true
+                        } else {
+                            saveHabit()
                         }
-                        habit.taskList.createTasks(habit)
-                        navController.popBackStack()
                     },
                     enabled = valid,
                     modifier = Modifier.width(100.dp),
                     shape = RoundedCornerShape(4.dp)
                 ) {
                     Text("Save", style = MaterialTheme.typography.titleMedium)
+
+                    BasicAlertDialog(
+                        showAlertDialog = showAlertDialog,
+                        icon = Icons.Default.Warning,
+                        title = "Warning",
+                        text = "Changing the frequency will reset completed tasks. Are you sure?",
+                        onDismissRequest = { showAlertDialog = false }
+                    ) {
+                        showAlertDialog = false
+                        saveHabit()
+                    }
                 }
             }
         }
@@ -222,8 +250,9 @@ fun TitleTextField(habit: Habit, modifier: Modifier = Modifier, checkValidity: (
     BoxWithConstraints {
         val boxWithConstraintsScope = this
         ExpandingTextField(
-            modifier = modifier,
+            initialText = habit.title,
             hint = "Enter title...",
+            modifier = modifier,
             width = boxWithConstraintsScope.maxWidth - 44.dp,
             keyboardOptions = KeyboardOptions(
                 imeAction = ImeAction.Done,
@@ -300,46 +329,55 @@ fun TimeSelector(habit: Habit, modifier: Modifier = Modifier, checkValidity: () 
 
         LazyColumn {
             items(startTimes.size) { index ->
-                Row(
-                    modifier.fillMaxWidth().padding(start = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text(
-                        startTimes[index].format(DateTimeFormatter.ofPattern("hh:mm a")),
-                        color = if (startTimes[index].isAfter(endTimes[index])) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
-                    )
-                    TimePickerButton(
-                        time = startTimes[index]
-                    ) { _, hour, minute ->
-                        startTimes[index] = LocalTime.of(hour, minute)
-                        habit.taskList.startTimes[index] = startTimes[index]
-                        checkValidity()
-                    }
-
-                    Text("to")
-                    Text(
-                        endTimes[index].format(DateTimeFormatter.ofPattern("hh:mm a")),
-                        color = if (startTimes[index].isAfter(endTimes[index])) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
-                    )
-                    TimePickerButton(
-                        time = endTimes[index]
-                    ) { _, hour, minute ->
-                        endTimes[index] = LocalTime.of(hour, minute)
-                        habit.taskList.endTimes[index] = endTimes[index]
-                        checkValidity()
-                    }
-
-                    IconButton(
-                        onClick = {
-                            startTimes.removeAt(index)
-                            endTimes.removeAt(index)
-                            habit.taskList.startTimes.removeAt(index)
-                            habit.taskList.endTimes.removeAt(index)
+                    Row(
+                        modifier.fillMaxWidth().padding(start = 16.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            startTimes[index].format(DateTimeFormatter.ofPattern("hh:mm a")),
+                            color = if (startTimes[index].isAfter(endTimes[index])) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
+                        )
+                        TimePickerButton(
+                            time = startTimes[index]
+                        ) { _, hour, minute ->
+                            startTimes[index] = LocalTime.of(hour, minute)
+                            habit.taskList.startTimes[index] = startTimes[index]
                             checkValidity()
                         }
-                    ) {
-                        Icon(Icons.Default.Delete, "Delete")
+
+                        Text("to")
+                        Text(
+                            endTimes[index].format(DateTimeFormatter.ofPattern("hh:mm a")),
+                            color = if (startTimes[index].isAfter(endTimes[index])) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
+                        )
+                        TimePickerButton(
+                            time = endTimes[index]
+                        ) { _, hour, minute ->
+                            endTimes[index] = LocalTime.of(hour, minute)
+                            habit.taskList.endTimes[index] = endTimes[index]
+                            checkValidity()
+                        }
+
+                        IconButton(
+                            onClick = {
+                                startTimes.removeAt(index)
+                                endTimes.removeAt(index)
+                                habit.taskList.startTimes.removeAt(index)
+                                habit.taskList.endTimes.removeAt(index)
+                                checkValidity()
+                            }
+                        ) {
+                            Icon(Icons.Default.Delete, "Delete")
+                        }
+                    }
+
+                    if (startTimes[index].isAfter(endTimes[index])) {
+                        Text("Start time cannot be after end time", color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center)
                     }
                 }
             }
@@ -434,7 +472,7 @@ fun DayOfMonthSelector(habit: Habit, modifier: Modifier = Modifier, checkValidit
 }
 
 @Composable
-fun DateSelector(habit: Habit, modifier: Modifier = Modifier, checkValidity: () -> Unit) {
+fun DateSelector(habit: Habit, oldHabit: Habit, isNewHabit: Boolean, modifier: Modifier = Modifier, checkValidity: () -> Unit) {
     val context = LocalContext.current
     var startDate by remember { mutableStateOf(habit.taskList.startDate) }
     var endDate by remember { mutableStateOf(habit.taskList.endDate) }
@@ -443,7 +481,7 @@ fun DateSelector(habit: Habit, modifier: Modifier = Modifier, checkValidity: () 
         DatePickerDialog(
             context,
             { _, year, month, dayOfMonth ->
-                startDate = LocalDate.of(year, month + 1, dayOfMonth + 1)
+                startDate = LocalDate.of(year, month + 1, dayOfMonth)
                 habit.taskList.startDate = startDate
                 checkValidity()
             },
@@ -457,7 +495,7 @@ fun DateSelector(habit: Habit, modifier: Modifier = Modifier, checkValidity: () 
         DatePickerDialog(
             context,
             { _, year, month, dayOfMonth ->
-                endDate = LocalDate.of(year, month + 1, dayOfMonth + 1)
+                endDate = LocalDate.of(year, month + 1, dayOfMonth)
                 habit.taskList.endDate = endDate
                 checkValidity()
             },
@@ -467,31 +505,48 @@ fun DateSelector(habit: Habit, modifier: Modifier = Modifier, checkValidity: () 
         ).show()
     }
 
-    Row(
+    Column(
         modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Text(
-            startDate.format(DateTimeFormatter.ofPattern("d MMM")),
-            modifier = Modifier.clickable(onClick = onStartDateClick),
-            color = if (startDate.isAfter(endDate)) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
-        )
-        IconButton(
-            onClick = { onStartDateClick() }
+        Row(
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(Icons.Default.DateRange, "Date")
-        }
-        Text("to", modifier = Modifier.padding(end = 12.dp))
+            Text(
+                startDate.format(DateTimeFormatter.ofPattern("d MMM")),
+                modifier = Modifier.clickable(onClick = onStartDateClick),
+                color = if (startDate.isAfter(endDate)) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
+            )
+            IconButton(
+                onClick = { onStartDateClick() }
+            ) {
+                Icon(Icons.Default.DateRange, "Date")
+            }
+            Text("to", modifier = Modifier.padding(end = 12.dp))
 
-        Text(
-            endDate.format(DateTimeFormatter.ofPattern("d MMM")),
-            modifier = Modifier.clickable(onClick = onEndDateClick),
-            color = if (startDate.isAfter(endDate)) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
-        )
-        IconButton(
-            onClick = { onEndDateClick() }
-        ) {
-            Icon(Icons.Default.DateRange, "Date")
+            Text(
+                endDate.format(DateTimeFormatter.ofPattern("d MMM")),
+                modifier = Modifier.clickable(onClick = onEndDateClick),
+                color = if (startDate.isAfter(endDate)) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
+            )
+            IconButton(
+                onClick = { onEndDateClick() }
+            ) {
+                Icon(Icons.Default.DateRange, "Date")
+            }
+        }
+
+        if (startDate.isAfter(endDate)) {
+            Text("Start date cannot be after end date", color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center)
+        }
+
+        if (startDate.isBefore(LocalDate.now())) {
+            Text("Start date cannot be in the past", color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center)
+        }
+
+        if (!isNewHabit && startDate != oldHabit.taskList.startDate) {
+            Text("Start date cannot be edited", color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center)
         }
     }
 }

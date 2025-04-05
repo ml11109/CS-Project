@@ -1,6 +1,7 @@
 package com.example.projectp2.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
@@ -16,7 +17,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.projectp2.AddNewFAB
@@ -25,6 +25,7 @@ import com.example.projectp2.R
 import com.example.projectp2.composables.ScreenSwitcher
 import com.example.projectp2.model.UserDataViewModel
 import com.example.projectp2.model.Task
+import com.example.projectp2.model.TaskCard
 import kotlinx.coroutines.CoroutineScope
 import java.time.format.DateTimeFormatter
 
@@ -32,48 +33,56 @@ import java.time.format.DateTimeFormatter
 fun HomeScreen(userDataViewModel: UserDataViewModel, navController: NavController, drawerState: DrawerState, scope: CoroutineScope) {
     val boxModifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(8.dp))
 
-    AppScaffold(
-        title = stringResource(R.string.app_name),
-        navController = navController,
-        drawerState = drawerState,
-        scope = scope,
-        floatingActionButton = { AddNewFAB(navController) }
-    ) { nestedScrollConnection ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
-                .nestedScroll(nestedScrollConnection)
-                .verticalScroll(rememberScrollState())
-        ) {
-            InfoBar(userDataViewModel, Modifier.fillMaxWidth().height(50.dp))
-            Spacer(Modifier.height(16.dp))
+    BoxWithConstraints(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        val maxHeight = this.maxHeight.value.dp
 
-            MiniScreen(
-                userDataViewModel,
-                boxModifier.fillMaxWidth().height(300.dp)
-            )
-            Spacer(Modifier.height(12.dp))
+        AppScaffold(
+            title = stringResource(R.string.app_name),
+            navController = navController,
+            drawerState = drawerState,
+            scope = scope,
+            floatingActionButton = { AddNewFAB(navController) }
+        ) { nestedScrollConnection ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+                    .nestedScroll(nestedScrollConnection)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                InfoBar(userDataViewModel, navController, Modifier.fillMaxWidth().height(50.dp))
+                Spacer(Modifier.height(16.dp))
 
-            Row(modifier = Modifier.fillMaxWidth().weight(1f)) {
-                TaskColumn(
-                    "Ongoing", userDataViewModel.getOngoingTasks(),
-                    userDataViewModel, navController,
-                    boxModifier.fillMaxHeight().weight(1f)
+                MiniScreen(
+                    userDataViewModel,
+                    boxModifier.fillMaxWidth().height(maxHeight.times(0.35f))
                 )
-                Spacer(Modifier.width(12.dp))
-                TaskColumn(
-                    "Upcoming", userDataViewModel.getUpcomingTasks(10),
-                    userDataViewModel, navController,
-                    boxModifier.fillMaxHeight().weight(1f)
-                )
+                Spacer(Modifier.height(12.dp))
+
+                Row(modifier = Modifier.fillMaxWidth().weight(1f)) {
+                    MiniTaskList(
+                        "Completed", userDataViewModel.getCompletedTasks(5),
+                        userDataViewModel, navController,
+                        boxModifier.fillMaxHeight().weight(1f)
+                    )
+                    Spacer(Modifier.width(12.dp))
+                    MiniTaskList(
+                        "Upcoming", userDataViewModel.getUpcomingTasks(5),
+                        userDataViewModel, navController,
+                        boxModifier.fillMaxHeight().weight(1f)
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-fun InfoBar(userDataViewModel: UserDataViewModel, modifier: Modifier = Modifier) {
+fun InfoBar(userDataViewModel: UserDataViewModel, navController: NavController, modifier: Modifier = Modifier) {
+    val ongoingTasks = userDataViewModel.getOngoingTasks()
+
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(12.dp),
@@ -83,11 +92,33 @@ fun InfoBar(userDataViewModel: UserDataViewModel, modifier: Modifier = Modifier)
             modifier = Modifier.fillMaxSize().padding(8.dp),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = "Welcome back!", // TODO: Add info text
-                style = MaterialTheme.typography.titleMedium,
-                textAlign = TextAlign.Center
-            )
+            when (ongoingTasks.size) {
+                0 -> Text(
+                    text = "Welcome back!", // TODO: add info text
+                    style = MaterialTheme.typography.titleMedium
+                )
+
+                1 -> Text(
+                    text = "Ongoing: ${ongoingTasks[0].habit.title} " +
+                            "by ${ongoingTasks[0].endTime.format(DateTimeFormatter.ofPattern("hh:mm a"))}",
+                    style = MaterialTheme.typography.titleMedium
+                )
+
+                else -> Row {
+                    Text(
+                        text = "You have ${ongoingTasks.size} ongoing tasks",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Spacer(Modifier.width(16.dp))
+                    Text(
+                        text = "Click to view ->",
+                        style = MaterialTheme.typography.titleMedium.copy(color = MaterialTheme.colorScheme.primary),
+                        modifier = Modifier.clickable {
+                            navController.navigate("habits/")
+                        }
+                    )
+                }
+            }
         }
     }
 }
@@ -97,7 +128,7 @@ fun MiniScreen(userDataViewModel: UserDataViewModel, modifier: Modifier = Modifi
     ScreenSwitcher(3, 0, modifier) { screenNum ->
         val screenModifier = Modifier.fillMaxSize().padding(16.dp)
         when (screenNum) {
-            0 -> MiniHabitsScreen(userDataViewModel, screenModifier)
+            0 -> MiniTasksScreen(userDataViewModel, screenModifier)
             1 -> MiniStatsScreen(userDataViewModel, screenModifier)
             2 -> MiniAchievementsScreen(userDataViewModel, screenModifier)
         }
@@ -105,7 +136,7 @@ fun MiniScreen(userDataViewModel: UserDataViewModel, modifier: Modifier = Modifi
 }
 
 @Composable
-fun TaskColumn(title: String, tasks: List<Task>, userDataViewModel: UserDataViewModel, navController: NavController, modifier: Modifier = Modifier) {
+fun MiniTaskList(title: String, tasks: List<Task>, userDataViewModel: UserDataViewModel, navController: NavController, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
     ) {
@@ -120,7 +151,7 @@ fun TaskColumn(title: String, tasks: List<Task>, userDataViewModel: UserDataView
             )
             Spacer(Modifier.weight(1f))
             IconButton(
-                onClick = { navController.navigate("habits/${title.lowercase()}") }
+                onClick = { navController.navigate("habits") }
             ) {
                 Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "See More")
             }
@@ -137,65 +168,6 @@ fun TaskColumn(title: String, tasks: List<Task>, userDataViewModel: UserDataView
                         .fillMaxWidth()
                         .padding(vertical = 4.dp)
                 )
-            }
-        }
-    }
-}
-
-@Composable
-fun TaskCard(userDataViewModel: UserDataViewModel, task: Task, modifier: Modifier = Modifier) {
-    Card(
-        modifier = modifier,
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Task details
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = task.habit.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.weight(1f))
-
-                    // Color indicator
-                    Box(
-                        modifier = Modifier
-                            .size(20.dp)
-                            .clip(RoundedCornerShape(percent = 50))
-                            .background(userDataViewModel.getCategoryColor(task.habit.category))
-                    )
-                }
-
-                Text(
-                    text = task.habit.description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                Row(
-                    modifier = Modifier.padding(top = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = task.startTime.format(DateTimeFormatter.ofPattern("hh:mm a")) + " - "
-                                + task.endTime.format(DateTimeFormatter.ofPattern("hh:mm a")) + ", "
-                                + task.date.format(DateTimeFormatter.ofPattern("dd/MM")),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
             }
         }
     }

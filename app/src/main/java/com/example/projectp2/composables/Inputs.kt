@@ -1,5 +1,6 @@
 package com.example.projectp2.composables
 
+import android.annotation.SuppressLint
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.border
@@ -167,8 +168,9 @@ ExpandingTextField { text = it }
 
 @Composable
 fun ExpandingTextField(
-    modifier: Modifier = Modifier,
+    initialText: String = "",
     hint: String = "Enter text...",
+    @SuppressLint("ModifierParameter") modifier: Modifier = Modifier,
     width: Dp = 200.dp,
     height: Dp = 54.dp,
     textStyle: TextStyle = LocalTextStyle.current,
@@ -181,9 +183,9 @@ fun ExpandingTextField(
     val textMeasurer = rememberTextMeasurer()
     val shouldShowHintIfEmpty = showHintIfEmpty && hint.isNotBlank()
     var minWidth by remember { mutableStateOf(
-        if (!shouldShowHintIfEmpty) 0.dp else {
+        if (!shouldShowHintIfEmpty && initialText.isBlank()) 0.dp else {
             (with(density) {
-                textMeasurer.measure(hint, textStyle).size.width.toDp()
+                textMeasurer.measure(initialText.ifBlank { hint }, textStyle).size.width.toDp()
             } + 32.dp).coerceAtMost(width)
         }
     ) }
@@ -191,7 +193,7 @@ fun ExpandingTextField(
     var expanded by remember { mutableStateOf(false) }
     val currentWidth by animateDpAsState(if (expanded) width else minWidth)
     val alpha by animateFloatAsState(if (expanded) 1f else 0f)
-    var text by remember { mutableStateOf("") }
+    var text by remember { mutableStateOf(initialText) }
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
 

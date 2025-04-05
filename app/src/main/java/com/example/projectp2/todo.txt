@@ -1,19 +1,17 @@
 todo:
-- Change "ongoing" task list to "completed" and put ongoing somewhere else (maybe info bar)
-- Add time period info to habits page and mark out completed habits
 - Create updateTasks method in TaskList that preserves completed tasks
+- Show completion in MiniTaskList in home screen
 
 - Create home page layout /
 - Create habits page layout /
 - Create details page layout /
-- Create stats page layout
-- Create achievements page layout
+- Create stats & achievements page layout
 
 - Basic habit creation /
 - Habit display and filtering
-- Calendar habit display
-- Mini habit display on home page
-- Task display on home page /
+- Task display on habits page
+- Ongoing tasks display on home page
+- Completed & upcoming tasks display on home page /
 - More advanced habit creation options /
 - Habit creation templates
 
