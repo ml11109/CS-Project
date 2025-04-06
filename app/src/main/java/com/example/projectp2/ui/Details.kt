@@ -1,6 +1,7 @@
 package com.example.projectp2.ui
 
 import android.app.DatePickerDialog
+import android.content.res.Configuration
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -9,15 +10,18 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -35,6 +39,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -42,6 +47,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -55,6 +61,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
@@ -85,7 +92,6 @@ fun DetailsScreen(userDataViewModel: UserDataViewModel, navController: NavContro
     val habit = oldHabit.copy()
     val isNewHabit = habitType != 1
     var valid by remember { mutableStateOf(false) }
-    var frequency by remember { mutableStateOf(habit.frequency) }
     val focusManager = LocalFocusManager.current
 
     fun checkValidity() {
@@ -125,121 +131,278 @@ fun DetailsScreen(userDataViewModel: UserDataViewModel, navController: NavContro
         drawerState = drawerState,
         scope = scope
     ) { nestedScrollConnection ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(24.dp)
-                .nestedScroll(nestedScrollConnection)
-                .verticalScroll(rememberScrollState())
-                .pointerInput(Unit) {
-                    detectTapGestures { focusManager.clearFocus() }
-                },
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+        if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(24.dp)
+                    .nestedScroll(nestedScrollConnection)
+                    .verticalScroll(rememberScrollState())
+                    .pointerInput(Unit) {
+                        detectTapGestures { focusManager.clearFocus() }
+                    },
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                BasicDetails(userDataViewModel, navController, habit, Modifier.fillMaxWidth()) { checkValidity() }
+                HorizontalDivider(Modifier.fillMaxWidth().padding(start = 8.dp, end = 8.dp, top = 12.dp))
+
+                TimingDetails(userDataViewModel, navController, habit, oldHabit, isNewHabit, Modifier.fillMaxWidth()) { checkValidity() }
+                HorizontalDivider(Modifier.fillMaxWidth().padding(start = 8.dp, end = 8.dp, top = 12.dp, bottom = 12.dp))
+
+                AdvancedSettings(habit, Modifier.fillMaxWidth())
+                HorizontalDivider(Modifier.fillMaxWidth().padding(start = 8.dp, end = 8.dp, top = 12.dp))
+
+                DetailsButtons(userDataViewModel, navController, habit, oldHabit, isNewHabit, valid,
+                    Modifier.fillMaxWidth().padding(end = 16.dp), { checkValidity() }, { saveHabit() })
+            }
+        }
+
+        else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(24.dp)
+                    .nestedScroll(nestedScrollConnection)
+                    .verticalScroll(rememberScrollState())
+                    .pointerInput(Unit) {
+                        detectTapGestures { focusManager.clearFocus() }
+                    },
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    BasicDetails(userDataViewModel, navController, habit, Modifier.weight(1f)) { checkValidity() }
+                    Spacer(Modifier.width(24.dp))
+                    TimingDetails(userDataViewModel, navController, habit, oldHabit, isNewHabit, Modifier.weight(1f)) { checkValidity() }
+                }
+                HorizontalDivider(Modifier.fillMaxWidth().padding(start = 8.dp, end = 8.dp, top = 12.dp, bottom = 12.dp))
+
+                AdvancedSettings(habit, Modifier.fillMaxWidth())
+                HorizontalDivider(Modifier.fillMaxWidth().padding(start = 8.dp, end = 8.dp, top = 12.dp))
+
+                DetailsButtons(userDataViewModel, navController, habit, oldHabit, isNewHabit, valid,
+                    Modifier.fillMaxWidth().padding(end = 16.dp), { checkValidity() }, { saveHabit() })
+            }
+        }
+    }
+}
+
+@Composable
+fun BasicDetails(userDataViewModel: UserDataViewModel, navController: NavController, habit: Habit, modifier: Modifier = Modifier, checkValidity: () -> Unit) {
+    // Title, description and category
+
+    Column(
+        modifier = modifier
+    ) {
+        TitleTextField(habit, Modifier.fillMaxWidth()) { checkValidity() }
+        DescriptionTextField(habit, Modifier.fillMaxWidth()) { checkValidity() }
+        Spacer(Modifier.height(12.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            // Title, description and category
-            TitleTextField(habit, Modifier.fillMaxWidth()) { checkValidity() }
-            DescriptionTextField(habit, Modifier.fillMaxWidth()) { checkValidity() }
+            Text("Category", Modifier.width(90.dp))
+            Spacer(Modifier.weight(1f))
+            CategoryTextField(userDataViewModel, navController, habit, Modifier.fillMaxWidth()) { checkValidity() }
+        }
+    }
+}
 
-            Row(
+@Composable
+fun TimingDetails(
+    userDataViewModel: UserDataViewModel, navController: NavController,
+    habit: Habit, oldHabit: Habit, isNewHabit: Boolean,
+    modifier: Modifier = Modifier, checkValidity: () -> Unit
+) {
+    var frequency by remember { mutableStateOf(habit.frequency) }
+
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        // Frequency
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("Frequency", Modifier.width(90.dp))
+            Spacer(Modifier.weight(1f))
+            FrequencySelector(userDataViewModel, habit) {
+                frequency = it; habit.frequency = it; checkValidity()
+            }
+            Spacer(Modifier.weight(1f))
+        }
+
+        // Time and date
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("Time period", Modifier.width(90.dp))
+            Spacer(Modifier.weight(1f))
+            DateSelector(habit, oldHabit, isNewHabit) { checkValidity() }
+            Spacer(Modifier.weight(1f))
+        }
+
+        TimeSelector(habit, Modifier.fillMaxWidth().heightIn(0.dp, 400.dp)) { checkValidity() }
+
+        if (frequency == Frequency.WEEKLY) {
+            Text("Days")
+            DayOfWeekSelector(habit, Modifier.fillMaxWidth()) { checkValidity() }
+        } else if (frequency == Frequency.MONTHLY) {
+            Text("Days")
+            DayOfMonthSelector(habit, Modifier.fillMaxWidth()) { checkValidity() }
+        }
+    }
+}
+
+@Composable
+fun AdvancedSettings(habit: Habit, modifier: Modifier = Modifier) {
+    var showAdvancedSettings by remember { mutableStateOf(false) }
+    var sendNotifications by remember { mutableStateOf(habit.sendNotifications) }
+    var numExceptionsPerMonth by remember { mutableStateOf(if (habit.numExceptionsPerMonth == 0) "" else habit.numExceptionsPerMonth.toString()) }
+    var allowExceptions by remember { mutableStateOf(habit.allowExceptions) }
+
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(32.dp)
+                .clickable { showAdvancedSettings = !showAdvancedSettings },
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Advanced Settings",
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            Icon(
+                if (showAdvancedSettings) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                contentDescription = if (showAdvancedSettings) "Hide advanced settings" else "Show advanced settings"
+            )
+        }
+
+        AnimatedVisibility(visible = showAdvancedSettings) {
+            Card(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                )
             ) {
-                Text("Category", Modifier.width(90.dp))
-                Spacer(Modifier.weight(1f))
-                CategoryTextField(userDataViewModel, navController, habit, Modifier.fillMaxWidth()) { checkValidity() }
-            }
-            HorizontalDivider(Modifier.fillMaxWidth().padding(start = 8.dp, end = 8.dp, top = 12.dp))
-
-            // Frequency
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("Frequency", Modifier.width(90.dp))
-                Spacer(Modifier.weight(1f))
-                FrequencySelector(userDataViewModel, habit) {
-                    frequency = it; habit.frequency = it; checkValidity()
-                }
-                Spacer(Modifier.weight(1f))
-            }
-
-            // Time and date
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("Time period", Modifier.width(90.dp))
-                Spacer(Modifier.weight(1f))
-                DateSelector(habit, oldHabit, isNewHabit) { checkValidity() }
-                Spacer(Modifier.weight(1f))
-            }
-
-            TimeSelector(habit, Modifier.fillMaxWidth().heightIn(0.dp, 400.dp)) { checkValidity() }
-
-            if (frequency == Frequency.WEEKLY) {
-                Text("Days")
-                DayOfWeekSelector(habit, Modifier.fillMaxWidth()) { checkValidity() }
-            } else if (frequency == Frequency.MONTHLY) {
-                Text("Days")
-                DayOfMonthSelector(habit, Modifier.fillMaxWidth()) { checkValidity() }
-            }
-
-            // Advanced settings
-            HorizontalDivider(Modifier.fillMaxWidth().padding(start = 8.dp, end = 8.dp, top = 12.dp, bottom = 12.dp))
-            AdvancedSettings(habit, Modifier.fillMaxWidth())
-            HorizontalDivider(Modifier.fillMaxWidth().padding(start = 8.dp, end = 8.dp, top = 12.dp))
-
-            // Cancel and save buttons
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(end = 16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Spacer(Modifier.weight(1f))
-
-                Button(
-                    onClick = {
-                        navController.popBackStack()
-                    },
-                    modifier = Modifier.width(100.dp),
-                    shape = RoundedCornerShape(4.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceBright,
-                        contentColor = MaterialTheme.colorScheme.onSurface
-                    )
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(16.dp)
                 ) {
-                    Text("Cancel", style = MaterialTheme.typography.titleMedium)
-                }
-                Spacer(Modifier.width(12.dp))
-
-                var showAlertDialog by remember { mutableStateOf(false) }
-                Button(
-                    onClick = {
-                        checkValidity()
-                        if (!valid) return@Button
-
-                        if (!isNewHabit && frequency != oldHabit.frequency) {
-                            showAlertDialog = true
-                        } else {
-                            saveHabit()
-                        }
-                    },
-                    enabled = valid,
-                    modifier = Modifier.width(100.dp),
-                    shape = RoundedCornerShape(4.dp)
-                ) {
-                    Text("Save", style = MaterialTheme.typography.titleMedium)
-
-                    BasicAlertDialog(
-                        showAlertDialog = showAlertDialog,
-                        icon = Icons.Default.Warning,
-                        title = "Warning",
-                        text = "Changing the frequency will reset completed tasks. Are you sure?",
-                        onDismissRequest = { showAlertDialog = false }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        showAlertDialog = false
-                        saveHabit()
+                        Text("Notifications")
+                        Spacer(Modifier.weight(1f))
+                        Checkbox(
+                            checked = sendNotifications,
+                            onCheckedChange = {
+                                sendNotifications = it; habit.sendNotifications = it
+                            }
+                        )
+                    }
+                    Spacer(Modifier.height(12.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Exceptions")
+                        Spacer(Modifier.weight(1f))
+
+                        OutlinedTextField(
+                            value = numExceptionsPerMonth,
+                            onValueChange = { newValue ->
+                                if (newValue.isEmpty() || newValue.isDigitsOnly() && newValue.length <= 2) {
+                                    numExceptionsPerMonth = newValue
+                                    habit.numExceptionsPerMonth = if (newValue.isEmpty()) 0 else newValue.toInt()
+                                }
+                            },
+                            modifier = Modifier.width(54.dp).height(54.dp),
+                            textStyle = MaterialTheme.typography.bodyLarge,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        )
+                        Text("per month", Modifier.padding(start = 12.dp, end = 16.dp))
+
+                        Checkbox(
+                            checked = allowExceptions,
+                            onCheckedChange = {
+                                allowExceptions = it; habit.allowExceptions = it
+                            }
+                        )
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun DetailsButtons(
+    userDataViewModel: UserDataViewModel, navController: NavController,
+    habit: Habit, oldHabit: Habit, isNewHabit: Boolean, valid: Boolean,
+    modifier: Modifier = Modifier,
+    checkValidity: () -> Unit, saveHabit: () -> Unit
+) {
+    // Cancel and save buttons
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Spacer(Modifier.weight(1f))
+
+        Button(
+            onClick = {
+                navController.popBackStack()
+            },
+            modifier = Modifier.width(100.dp),
+            shape = RoundedCornerShape(4.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.surfaceBright,
+                contentColor = MaterialTheme.colorScheme.onSurface
+            )
+        ) {
+            Text("Cancel", style = MaterialTheme.typography.titleMedium)
+        }
+        Spacer(Modifier.width(12.dp))
+
+        var showAlertDialog by remember { mutableStateOf(false) }
+        Button(
+            onClick = {
+                checkValidity()
+                if (!valid) return@Button
+
+                if (!isNewHabit && habit.frequency != oldHabit.frequency) {
+                    showAlertDialog = true
+                } else {
+                    saveHabit()
+                }
+            },
+            enabled = valid,
+            modifier = Modifier.width(100.dp),
+            shape = RoundedCornerShape(4.dp)
+        ) {
+            Text("Save", style = MaterialTheme.typography.titleMedium)
+
+            BasicAlertDialog(
+                showAlertDialog = showAlertDialog,
+                icon = Icons.Default.Warning,
+                title = "Warning",
+                text = "Changing the frequency will reset completed tasks. Are you sure?",
+                onDismissRequest = { showAlertDialog = false }
+            ) {
+                showAlertDialog = false
+                saveHabit()
             }
         }
     }
@@ -549,94 +712,4 @@ fun DateSelector(habit: Habit, oldHabit: Habit, isNewHabit: Boolean, modifier: M
             Text("Start date cannot be edited", color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center)
         }
     }
-}
-
-@Composable
-fun AdvancedSettings(habit: Habit, modifier: Modifier = Modifier) {
-    var showAdvancedSettings by remember { mutableStateOf(false) }
-    var sendNotifications by remember { mutableStateOf(habit.sendNotifications) }
-    var numExceptionsPerMonth by remember { mutableStateOf(if (habit.numExceptionsPerMonth == 0) "" else habit.numExceptionsPerMonth.toString()) }
-    var allowExceptions by remember { mutableStateOf(habit.allowExceptions) }
-
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(32.dp)
-                .clickable { showAdvancedSettings = !showAdvancedSettings },
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "Advanced Settings",
-                style = MaterialTheme.typography.titleMedium
-            )
-
-            Icon(
-                if (showAdvancedSettings) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                contentDescription = if (showAdvancedSettings) "Hide advanced settings" else "Show advanced settings"
-            )
-        }
-
-        AnimatedVisibility(visible = showAdvancedSettings) {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                )
-            ) {
-                Column(
-                    modifier = Modifier.fillMaxWidth().padding(16.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("Notifications")
-                        Spacer(Modifier.weight(1f))
-                        Checkbox(
-                            checked = sendNotifications,
-                            onCheckedChange = {
-                                sendNotifications = it; habit.sendNotifications = it
-                            }
-                        )
-                    }
-                    Spacer(Modifier.height(12.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("Exceptions")
-                        Spacer(Modifier.weight(1f))
-
-                        OutlinedTextField(
-                            value = numExceptionsPerMonth,
-                            onValueChange = { newValue ->
-                                if (newValue.isEmpty() || newValue.isDigitsOnly() && newValue.length <= 2) {
-                                    numExceptionsPerMonth = newValue
-                                    habit.numExceptionsPerMonth = if (newValue.isEmpty()) 0 else newValue.toInt()
-                                }
-                            },
-                            modifier = Modifier.width(54.dp).height(54.dp),
-                            textStyle = MaterialTheme.typography.bodyLarge,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        )
-                        Text("per month", Modifier.padding(start = 12.dp, end = 16.dp))
-
-                        Checkbox(
-                            checked = allowExceptions,
-                            onCheckedChange = {
-                                allowExceptions = it; habit.allowExceptions = it
-                            }
-                        )
-                    }
-                }
-            }
-        }
-    }
-
 }

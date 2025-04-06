@@ -1,5 +1,6 @@
 package com.example.projectp2.ui
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -13,10 +14,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.projectp2.AddNewFAB
@@ -36,7 +36,7 @@ fun HomeScreen(userDataViewModel: UserDataViewModel, navController: NavControlle
     BoxWithConstraints(
         modifier = Modifier.fillMaxSize()
     ) {
-        val maxHeight = this.maxHeight.value.dp
+        val maxHeight = this.maxHeight
 
         AppScaffold(
             title = stringResource(R.string.app_name),
@@ -45,34 +45,71 @@ fun HomeScreen(userDataViewModel: UserDataViewModel, navController: NavControlle
             scope = scope,
             floatingActionButton = { AddNewFAB(navController) }
         ) { nestedScrollConnection ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
-                    .nestedScroll(nestedScrollConnection)
-                    .verticalScroll(rememberScrollState())
-            ) {
-                InfoBar(userDataViewModel, navController, Modifier.fillMaxWidth().height(50.dp))
-                Spacer(Modifier.height(16.dp))
+            if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
+                        .nestedScroll(nestedScrollConnection)
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    InfoBar(userDataViewModel, navController, Modifier.fillMaxWidth().height(50.dp))
+                    Spacer(Modifier.height(12.dp))
 
-                MiniScreen(
-                    userDataViewModel,
-                    boxModifier.fillMaxWidth().height(maxHeight.times(0.35f))
-                )
-                Spacer(Modifier.height(12.dp))
+                    MiniScreen(
+                        userDataViewModel,
+                        boxModifier.fillMaxWidth().height(maxHeight.times(0.35f))
+                    )
+                    Spacer(Modifier.height(8.dp))
 
-                Row(modifier = Modifier.fillMaxWidth().weight(1f)) {
-                    MiniTaskList(
-                        "Completed", userDataViewModel.getCompletedTasks(5),
-                        userDataViewModel, navController,
-                        boxModifier.fillMaxHeight().weight(1f)
-                    )
-                    Spacer(Modifier.width(12.dp))
-                    MiniTaskList(
-                        "Upcoming", userDataViewModel.getUpcomingTasks(5),
-                        userDataViewModel, navController,
-                        boxModifier.fillMaxHeight().weight(1f)
-                    )
+                    Row(modifier = Modifier.fillMaxWidth().weight(1f)) {
+                        MiniTaskList(
+                            "Completed", userDataViewModel.getCompletedTasks(5),
+                            userDataViewModel, navController,
+                            boxModifier.fillMaxHeight().weight(1f)
+                        )
+                        Spacer(Modifier.width(8.dp))
+
+                        MiniTaskList(
+                            "Upcoming", userDataViewModel.getUpcomingTasks(5),
+                            userDataViewModel, navController,
+                            boxModifier.fillMaxHeight().weight(1f)
+                        )
+                    }
+                }
+            }
+
+            else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
+                        .nestedScroll(nestedScrollConnection)
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    InfoBar(userDataViewModel, navController, Modifier.fillMaxWidth().height(50.dp))
+                    Spacer(Modifier.height(12.dp))
+
+                    Row(modifier = Modifier.fillMaxWidth().weight(1f)) {
+                        MiniScreen(
+                            userDataViewModel,
+                            boxModifier.fillMaxHeight().weight(2f)
+                        )
+                        Spacer(Modifier.width(8.dp))
+
+                        MiniTaskList(
+                            "Completed", userDataViewModel.getCompletedTasks(5),
+                            userDataViewModel, navController,
+                            boxModifier.fillMaxHeight().weight(1f)
+                        )
+                        Spacer(Modifier.width(8.dp))
+
+                        MiniTaskList(
+                            "Upcoming", userDataViewModel.getUpcomingTasks(5),
+                            userDataViewModel, navController,
+                            boxModifier.fillMaxHeight().weight(1f)
+                        )
+                    }
                 }
             }
         }

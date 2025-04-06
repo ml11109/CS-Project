@@ -1,5 +1,6 @@
 package com.example.projectp2.ui
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.horizontalScroll
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -33,8 +35,10 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -72,37 +76,83 @@ fun HabitsScreen(userDataViewModel: UserDataViewModel, navController: NavControl
             scope = scope,
             floatingActionButton = { AddNewFAB(navController) }
         ) { nestedScrollConnection ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
-                    .nestedScroll(nestedScrollConnection)
-                    .verticalScroll(rememberScrollState())
-                    .pointerInput(Unit) {
-                        detectTapGestures { focusManager.clearFocus() }
-                    }
-            ) {
-                val filteredHabits = remember { mutableStateListOf<Habit>().apply { addAll(filter.filterHabits(userDataViewModel.habits)) } }
+            val filteredHabits = remember { mutableStateListOf<Habit>().apply { addAll(filter.filterHabits(userDataViewModel.habits)) } }
 
-                FilterOptions(userDataViewModel, filter, Modifier.height(30.dp)) {
-                    filteredHabits.clear(); filteredHabits.addAll(filter.filterHabits(userDataViewModel.habits))
+            if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
+                        .nestedScroll(nestedScrollConnection)
+                        .verticalScroll(rememberScrollState())
+                        .pointerInput(Unit) {
+                            detectTapGestures { focusManager.clearFocus() }
+                        }
+                ) {
+                    FilterOptions(userDataViewModel, filter, Modifier.fillMaxWidth().height(30.dp)) {
+                        filteredHabits.clear(); filteredHabits.addAll(filter.filterHabits(userDataViewModel.habits))
+                    }
+                    Spacer(Modifier.height(8.dp))
+
+                    TaskList(boxModifier.fillMaxWidth().height(maxHeight.times(0.35f)))
+                    HorizontalDivider(Modifier.fillMaxWidth().padding(12.dp))
+
+                    if (filteredHabits.isEmpty()) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth().weight(1f),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Icon(Icons.Default.Info, "Info", modifier = Modifier.size(36.dp).alpha(0.5f))
+                            Text("No habits found", style = MaterialTheme.typography.titleMedium, modifier = Modifier.alpha(0.5f).padding(top = 16.dp, bottom = 48.dp))
+                        }
+                    } else {
+                        HabitList(userDataViewModel, navController, filteredHabits, Modifier.fillMaxWidth().weight(1f))
+                    }
                 }
-                Spacer(Modifier.height(12.dp))
+            }
 
-                TaskList(boxModifier.fillMaxWidth().height(maxHeight.times(0.35f)))
-                HorizontalDivider(Modifier.fillMaxWidth().padding(12.dp))
+            else {
+                BoxWithConstraints(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    val contentHeight = this.maxHeight - 32.dp
 
-                if (filteredHabits.isEmpty()) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth().weight(1f),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
+                    Row(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp)
+                            .nestedScroll(nestedScrollConnection)
+                            .verticalScroll(rememberScrollState())
+                            .pointerInput(Unit) {
+                                detectTapGestures { focusManager.clearFocus() }
+                            }
                     ) {
-                        Icon(Icons.Default.Info, "Info", modifier = Modifier.size(36.dp).alpha(0.5f))
-                        Text("No habits found", style = MaterialTheme.typography.titleMedium, modifier = Modifier.alpha(0.5f).padding(top = 16.dp, bottom = 64.dp))
+                        Column(
+                            modifier = Modifier.height(contentHeight).weight(1f)
+                        ) {
+                            FilterOptions(userDataViewModel, filter, Modifier.fillMaxWidth().height(30.dp)) {
+                                filteredHabits.clear(); filteredHabits.addAll(filter.filterHabits(userDataViewModel.habits))
+                            }
+                            Spacer(Modifier.height(8.dp))
+
+                            TaskList(boxModifier.fillMaxSize())
+                        }
+                        Spacer(Modifier.width(12.dp))
+
+                        if (filteredHabits.isEmpty()) {
+                            Column(
+                                modifier = Modifier.height(contentHeight).weight(1f),
+                                verticalArrangement = Arrangement.Center,
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Icon(Icons.Default.Info, "Info", modifier = Modifier.size(36.dp).alpha(0.5f))
+                                Text("No habits found", style = MaterialTheme.typography.titleMedium, modifier = Modifier.alpha(0.5f).padding(top = 16.dp))
+                            }
+                        } else {
+                            HabitList(userDataViewModel, navController, filteredHabits, Modifier.height(contentHeight).weight(1f))
+                        }
                     }
-                } else {
-                    HabitList(userDataViewModel, navController, filteredHabits, Modifier.fillMaxWidth().weight(1f))
                 }
             }
         }
@@ -193,13 +243,19 @@ fun FilterOptions(userDataViewModel: UserDataViewModel, filter: Filter, modifier
 
 @Composable
 fun TaskList(modifier: Modifier = Modifier) {
-    ScreenSwitcher(2, 0, modifier) { screen ->
+    ScreenSwitcher(3, 0, modifier) { screen ->
         val screenModifier = Modifier.fillMaxSize().padding(16.dp)
         when (screen) {
-            0 -> HabitCalendarDay(screenModifier)
-            1 -> HabitCalendarWeek(screenModifier)
+            0 -> HabitOverview(screenModifier)
+            1 -> HabitCalendarDay(screenModifier)
+            2 -> HabitCalendarWeek(screenModifier)
         }
     }
+}
+
+@Composable
+fun HabitOverview(modifier: Modifier = Modifier) {
+
 }
 
 @Composable
