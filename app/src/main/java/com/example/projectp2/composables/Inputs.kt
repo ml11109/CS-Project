@@ -78,9 +78,9 @@ DropdownSelector(listOf("Option 1", "Option 2", "Option 3"), onValueChange = { o
 @Composable
 fun DropdownSelector(
     options: List<String>,
-    modifier: Modifier = Modifier,
-    textStyle: TextStyle,
     initialOption: String = "Select an option",
+    @SuppressLint("ModifierParameter") modifier: Modifier = Modifier,
+    textStyle: TextStyle,
     onValueChange: (String) -> Unit,
     content: @Composable (selectedText: String, expanded: Boolean, modifier: Modifier) -> Unit
 ) {
@@ -116,12 +116,12 @@ fun DropdownSelector(
 @Composable
 fun DropdownTextField(
     options: List<String>,
-    modifier: Modifier = Modifier,
-    textStyle: TextStyle = TextStyle.Default,
     initialOption: String = "Select an option",
+    @SuppressLint("ModifierParameter") modifier: Modifier = Modifier,
+    textStyle: TextStyle = TextStyle.Default,
     onValueChange: (String) -> Unit
 ) {
-    DropdownSelector(options, modifier, textStyle, initialOption, onValueChange) { selectedText, expanded, contentModifier ->
+    DropdownSelector(options, initialOption, modifier, textStyle, onValueChange) { selectedText, expanded, contentModifier ->
         OutlinedTextField(
             value = selectedText,
             onValueChange = {},
@@ -137,12 +137,12 @@ fun DropdownTextField(
 @Composable
 fun DropdownTextBox(
     options: List<String>,
-    modifier: Modifier = Modifier,
-    textStyle: TextStyle = TextStyle.Default,
     initialOption: String = "Select an option",
+    @SuppressLint("ModifierParameter") modifier: Modifier = Modifier,
+    textStyle: TextStyle = TextStyle.Default,
     onValueChange: (String) -> Unit
 ) {
-    DropdownSelector(options, modifier, textStyle, initialOption, onValueChange) { selectedText, expanded, contentModifier ->
+    DropdownSelector(options, initialOption, modifier, textStyle, onValueChange) { selectedText, expanded, contentModifier ->
         Row(
             modifier = contentModifier.fillMaxSize().padding(4.dp),
             verticalAlignment = Alignment.CenterVertically

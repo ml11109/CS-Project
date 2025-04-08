@@ -63,15 +63,15 @@ fun HomeScreen(userDataViewModel: UserDataViewModel, navController: NavControlle
                     Spacer(Modifier.height(8.dp))
 
                     Row(modifier = Modifier.fillMaxWidth().weight(1f)) {
-                        MiniTaskList(
-                            "Completed", userDataViewModel.getCompletedTasks(5),
+                        MiniTaskColumn(
+                            "Upcoming", userDataViewModel.getUpcomingTasks(10),
                             userDataViewModel, navController,
                             boxModifier.fillMaxHeight().weight(1f)
                         )
                         Spacer(Modifier.width(8.dp))
 
-                        MiniTaskList(
-                            "Upcoming", userDataViewModel.getUpcomingTasks(5),
+                        MiniTaskColumn(
+                            "Completed", userDataViewModel.getCompletedTasks(10),
                             userDataViewModel, navController,
                             boxModifier.fillMaxHeight().weight(1f)
                         )
@@ -97,15 +97,15 @@ fun HomeScreen(userDataViewModel: UserDataViewModel, navController: NavControlle
                         )
                         Spacer(Modifier.width(8.dp))
 
-                        MiniTaskList(
-                            "Completed", userDataViewModel.getCompletedTasks(5),
+                        MiniTaskColumn(
+                            "Upcoming", userDataViewModel.getUpcomingTasks(10),
                             userDataViewModel, navController,
                             boxModifier.fillMaxHeight().weight(1f)
                         )
                         Spacer(Modifier.width(8.dp))
 
-                        MiniTaskList(
-                            "Upcoming", userDataViewModel.getUpcomingTasks(5),
+                        MiniTaskColumn(
+                            "Completed", userDataViewModel.getCompletedTasks(10),
                             userDataViewModel, navController,
                             boxModifier.fillMaxHeight().weight(1f)
                         )
@@ -118,7 +118,7 @@ fun HomeScreen(userDataViewModel: UserDataViewModel, navController: NavControlle
 
 @Composable
 fun InfoBar(userDataViewModel: UserDataViewModel, navController: NavController, modifier: Modifier = Modifier) {
-    val ongoingTasks = userDataViewModel.getOngoingTasks()
+    val ongoingTasks = userDataViewModel.getTasks { it.isOngoing() }
 
     Card(
         modifier = modifier,
@@ -136,8 +136,8 @@ fun InfoBar(userDataViewModel: UserDataViewModel, navController: NavController, 
                 )
 
                 1 -> Text(
-                    text = "Ongoing: ${ongoingTasks[0].habit.title} " +
-                            "by ${ongoingTasks[0].endTime.format(DateTimeFormatter.ofPattern("hh:mm a"))}",
+                    text = "Ongoing: ${ongoingTasks.first().habit.title} " +
+                            "by ${ongoingTasks.first().endTime.format(DateTimeFormatter.ofPattern("hh:mm a"))}",
                     style = MaterialTheme.typography.titleMedium
                 )
 
@@ -173,12 +173,12 @@ fun MiniScreen(userDataViewModel: UserDataViewModel, modifier: Modifier = Modifi
 }
 
 @Composable
-fun MiniTaskList(title: String, tasks: List<Task>, userDataViewModel: UserDataViewModel, navController: NavController, modifier: Modifier = Modifier) {
+fun MiniTaskColumn(title: String, tasks: List<Task>, userDataViewModel: UserDataViewModel, navController: NavController, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(start = 16.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
@@ -186,17 +186,12 @@ fun MiniTaskList(title: String, tasks: List<Task>, userDataViewModel: UserDataVi
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary
             )
-            Spacer(Modifier.weight(1f))
-            IconButton(
-                onClick = { navController.navigate("habits") }
-            ) {
-                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "See More")
-            }
         }
 
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             items(tasks.size) { index ->
                 TaskCard(
@@ -204,6 +199,16 @@ fun MiniTaskList(title: String, tasks: List<Task>, userDataViewModel: UserDataVi
                     tasks[index],
                     Modifier.fillMaxWidth()
                 )
+            }
+
+            if (tasks.isNotEmpty()) {
+                item {
+                    Text(
+                        text = "See more...",
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(8.dp).clickable { navController.navigate("habits") }
+                    )
+                }
             }
         }
     }

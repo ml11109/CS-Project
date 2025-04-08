@@ -10,18 +10,15 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -39,7 +36,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -47,7 +43,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -80,8 +75,8 @@ import com.example.projectp2.composables.TimePickerButton
 import com.example.projectp2.model.Category
 import com.example.projectp2.model.Frequency
 import com.example.projectp2.model.Habit
-import com.example.projectp2.model.TaskList
 import com.example.projectp2.model.UserDataViewModel
+import com.example.projectp2.model.Week
 import kotlinx.coroutines.CoroutineScope
 import java.time.LocalDate
 import java.time.LocalTime
@@ -298,6 +293,7 @@ fun AdvancedSettings(habit: Habit, modifier: Modifier = Modifier) {
                 Column(
                     modifier = Modifier.fillMaxWidth().padding(16.dp)
                 ) {
+                    // Send notifications
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
@@ -313,6 +309,7 @@ fun AdvancedSettings(habit: Habit, modifier: Modifier = Modifier) {
                     }
                     Spacer(Modifier.height(12.dp))
 
+                    // Allow exceptions
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
@@ -579,7 +576,7 @@ fun DayOfWeekSelector(habit: Habit, modifier: Modifier = Modifier, checkValidity
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = TaskList.daysOfWeekNames[day]!!.first().toString(),
+                    text = Week.getDayName(day).first().toString(),
                     color = if (selectedDays[day] == true) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
                 )
             }

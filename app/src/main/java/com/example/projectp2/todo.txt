@@ -8,7 +8,7 @@ todo:
 
 - Basic habit creation /
 - Habit display and filtering /
-- Task display on habits page
+- Task display on habits page /
 - Ongoing tasks display on home page
 - Completed & upcoming tasks display on home page /
 - More advanced habit creation options /

@@ -52,12 +52,15 @@ TabScreen(
  */
 
 @Composable
-fun TabScreen(numTabs: Int, tabTitles: List<String> = emptyList(), tabIcons: List<ImageVector> = emptyList(), getTab: @Composable (Int) -> Unit) {
+fun TabScreen(numTabs: Int, tabTitles: List<String> = emptyList(), tabIcons: List<ImageVector> = emptyList(),
+              @SuppressLint("ModifierParameter") modifier: Modifier = Modifier, getTab: @Composable (Int) -> Unit) {
     var tabIndex by remember { mutableIntStateOf(0) }
     val filledTabTitles = tabTitles + List((numTabs - tabTitles.size).coerceAtLeast(0)) { "Tab ${it + 1}" }
     val filledTabIcons = tabIcons + List((numTabs - tabIcons.size).coerceAtLeast(0)) { Icons.Default.Info }
 
-    Column {
+    Column(
+        modifier = modifier
+    ) {
         TabRow(tabIndex) {
             for (index in 0 until numTabs) {
                 if (tabTitles.isEmpty() && tabIcons.isEmpty()) {

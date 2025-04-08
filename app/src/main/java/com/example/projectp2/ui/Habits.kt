@@ -2,6 +2,7 @@ package com.example.projectp2.ui
 
 import android.content.res.Configuration
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -22,20 +23,25 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
@@ -47,16 +53,22 @@ import com.example.projectp2.AppScaffold
 import com.example.projectp2.composables.BasicExpandingSearchBar
 import com.example.projectp2.composables.DatePickerSwitch
 import com.example.projectp2.composables.DropdownTextBox
+import com.example.projectp2.composables.OptionsRow
 import com.example.projectp2.composables.ScreenSwitcher
 import com.example.projectp2.model.Category
 import com.example.projectp2.model.Filter
 import com.example.projectp2.model.Frequency
 import com.example.projectp2.model.Habit
 import com.example.projectp2.model.HabitCard
+import com.example.projectp2.model.SimpleTaskCard
 import com.example.projectp2.model.Status
+import com.example.projectp2.model.Task
+import com.example.projectp2.model.TaskCard
 import com.example.projectp2.model.UserDataViewModel
+import com.example.projectp2.model.Week
 import kotlinx.coroutines.CoroutineScope
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun HabitsScreen(userDataViewModel: UserDataViewModel, navController: NavController, drawerState: DrawerState, scope: CoroutineScope) {
@@ -94,7 +106,7 @@ fun HabitsScreen(userDataViewModel: UserDataViewModel, navController: NavControl
                     }
                     Spacer(Modifier.height(8.dp))
 
-                    TaskList(boxModifier.fillMaxWidth().height(maxHeight.times(0.35f)))
+                    TaskScreen(userDataViewModel, boxModifier.fillMaxWidth().height(maxHeight.times(0.4f)))
                     HorizontalDivider(Modifier.fillMaxWidth().padding(12.dp))
 
                     if (filteredHabits.isEmpty()) {
@@ -136,7 +148,7 @@ fun HabitsScreen(userDataViewModel: UserDataViewModel, navController: NavControl
                             }
                             Spacer(Modifier.height(8.dp))
 
-                            TaskList(boxModifier.fillMaxSize())
+                            TaskScreen(userDataViewModel, boxModifier.fillMaxSize())
                         }
                         Spacer(Modifier.width(12.dp))
 
@@ -168,43 +180,37 @@ fun MiniTasksScreen(userDataViewModel: UserDataViewModel, modifier: Modifier = M
 
 @Composable
 fun FilterOptions(userDataViewModel: UserDataViewModel, filter: Filter, modifier: Modifier = Modifier, onFilterChange: () -> Unit) {
-    val scrollState = rememberScrollState()
-
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Row(
-            modifier = Modifier.weight(1f).horizontalScroll(scrollState),
+            modifier = Modifier.weight(1f).horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            val dropdownModifier = Modifier.width(100.dp).background(MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(4.dp))
+            val textStyle = MaterialTheme.typography.bodySmall
+
             DropdownTextBox(
                 arrayListOf(Status.ALL) + userDataViewModel.statusTypes,
-                modifier = Modifier.width(100.dp).background(MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(4.dp)),
-                textStyle = MaterialTheme.typography.bodySmall,
-                initialOption = "Status"
+                "Status", dropdownModifier, textStyle,
             ) {
                 filter.status = it
                 onFilterChange()
             }
-            Spacer(Modifier.width(8.dp))
 
             DropdownTextBox(
                 arrayListOf(Category.ALL) + userDataViewModel.categories,
-                modifier = Modifier.width(100.dp).background(MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(4.dp)),
-                textStyle = MaterialTheme.typography.bodySmall,
-                initialOption = "Category"
+                "Category", dropdownModifier, textStyle,
             ) {
                 filter.category = it
                 onFilterChange()
             }
-            Spacer(Modifier.width(8.dp))
 
             DropdownTextBox(
                 arrayListOf(Frequency.ALL) + userDataViewModel.frequencyTypes,
-                modifier = Modifier.width(100.dp).background(MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(4.dp)),
-                textStyle = MaterialTheme.typography.bodySmall,
-                initialOption = "Frequency"
+                "Frequency", dropdownModifier, textStyle,
             ) {
                 filter.frequency = it
                 onFilterChange()
@@ -242,42 +248,130 @@ fun FilterOptions(userDataViewModel: UserDataViewModel, filter: Filter, modifier
 }
 
 @Composable
-fun TaskList(modifier: Modifier = Modifier) {
-    ScreenSwitcher(3, 0, modifier) { screen ->
-        val screenModifier = Modifier.fillMaxSize().padding(16.dp)
-        when (screen) {
-            0 -> HabitOverview(screenModifier)
-            1 -> HabitCalendarDay(screenModifier)
-            2 -> HabitCalendarWeek(screenModifier)
+fun TaskScreen(userDataViewModel: UserDataViewModel, modifier: Modifier = Modifier) {
+    ScreenSwitcher(2, 0, modifier) {
+        when (it) {
+            0 -> TaskColumn(userDataViewModel, modifier = Modifier.fillMaxSize().padding(16.dp))
+            1 -> TaskCalendar(userDataViewModel, modifier = Modifier.fillMaxSize().padding(16.dp))
         }
     }
 }
 
 @Composable
-fun HabitOverview(modifier: Modifier = Modifier) {
+fun TaskColumn(userDataViewModel: UserDataViewModel, modifier: Modifier = Modifier) {
+    var taskStatus by remember { mutableStateOf(Status.ALL) }
+    val tasks = remember { mutableStateListOf<Task>().apply { addAll(userDataViewModel.getAllTasks()) } }
 
-}
+    Column(
+        modifier = modifier
+    ) {
+        OptionsRow(
+            options = arrayListOf(Status.ALL) + userDataViewModel.statusTypes,
+            initialOption = Status.ALL,
+            modifier = Modifier.fillMaxWidth().height(30.dp)
+        ) {
+            taskStatus = it
+            tasks.clear()
 
-@Composable
-fun HabitCalendarDay(modifier: Modifier = Modifier) {
-    /*
-    Column of detailed task cards (sort options maybe? otherwise sort by start time)
-    - Ongoing tasks
-     */
+            tasks.addAll(
+                when (taskStatus) {
+                    Status.ALL -> userDataViewModel.getAllTasks()
+                    Status.ONGOING -> userDataViewModel.getOngoingTasks(100)
+                    Status.UPCOMING -> userDataViewModel.getUpcomingTasks(100)
+                    Status.NOT_COMPLETED -> userDataViewModel.getNotCompletedTasks(100)
+                    Status.COMPLETED -> userDataViewModel.getCompletedTasks(100)
+                    else -> userDataViewModel.getAllTasks()
+                }
+            )
+        }
+        Spacer(Modifier.height(12.dp))
 
-    Box(modifier = modifier) {
-        Text("Day")
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(tasks.size) { index ->
+                TaskCard(
+                    userDataViewModel,
+                    tasks[index],
+                    Modifier.fillMaxWidth()
+                )
+            }
+        }
     }
 }
 
 @Composable
-fun HabitCalendarWeek(modifier: Modifier = Modifier) {
-    /*
-    Row of columns of small task cards
-     */
+fun TaskCalendar(userDataViewModel: UserDataViewModel, modifier: Modifier = Modifier) {
+    var firstDayOfWeek by remember { mutableStateOf(LocalDate.now().minusDays(LocalDate.now().dayOfWeek.ordinal.toLong())) }
+    val tasks = remember { mutableStateListOf<List<Task>>().apply { repeat(7) { add(listOf()) } } }
 
-    Box(modifier = modifier) {
-        Text("Week")
+    fun setTasks(date: LocalDate) {
+        for (dayOfWeek in 0 until 7) {
+            tasks[dayOfWeek] = userDataViewModel.getTasks { it.date == date.plusDays(dayOfWeek.toLong()) }.sortedBy { it.startTime }
+        }
+    }
+    setTasks(firstDayOfWeek)
+
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = {
+                    firstDayOfWeek = firstDayOfWeek.minusWeeks(1)
+                    setTasks(firstDayOfWeek)
+                }
+            ) {
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = "Previous")
+            }
+
+            Text(firstDayOfWeek.format(DateTimeFormatter.ofPattern("d/MM")) + " - " +
+                        firstDayOfWeek.plusDays(6).format(DateTimeFormatter.ofPattern("d/MM")))
+
+            IconButton(
+                onClick = {
+                    firstDayOfWeek = firstDayOfWeek.plusWeeks(1)
+                    setTasks(firstDayOfWeek)
+                }
+            ) {
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = "Next")
+            }
+        }
+
+        Row(
+            modifier = Modifier.fillMaxSize().horizontalScroll(rememberScrollState())
+        ) {
+            for (dayOfWeek in 0 until 7) {
+                Column(
+                    modifier = Modifier.fillMaxHeight().width(100.dp)
+                ) {
+                    Box(
+                        modifier = Modifier.fillMaxWidth().height(30.dp).border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(Week.getDayName(dayOfWeek + 1), style = MaterialTheme.typography.bodySmall)
+                    }
+
+                    LazyColumn(
+                        modifier = Modifier.fillMaxWidth().weight(1f).border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)).padding(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(tasks[dayOfWeek].size) { index ->
+                            SimpleTaskCard(
+                                userDataViewModel,
+                                tasks[dayOfWeek][index],
+                                Modifier.fillMaxWidth()
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

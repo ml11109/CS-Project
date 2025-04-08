@@ -23,6 +23,7 @@ data class TaskList(
     fun createTasks(habit: Habit) {
         tasks.clear()
 
+        var index = 1
         var date = startDate
         while (date <= endDate) {
             if (
@@ -31,7 +32,7 @@ data class TaskList(
                 || (habit.frequency == Frequency.MONTHLY && daysOfMonth[date.dayOfMonth] == true)
             ) {
                 for (i in startTimes.indices) {
-                    tasks.add(Task(habit, startTimes[i], endTimes[i], date))
+                    tasks.add(Task(habit, index++, startTimes[i], endTimes[i], date))
                 }
             }
             date = date.plusDays(1)
@@ -72,18 +73,6 @@ data class TaskList(
             endTimes,
             HashMap(daysOfWeek),
             HashMap(daysOfMonth)
-        )
-    }
-
-    companion object {
-        val daysOfWeekNames = mapOf(
-            1 to "Monday",
-            2 to "Tuesday",
-            3 to "Wednesday",
-            4 to "Thursday",
-            5 to "Friday",
-            6 to "Saturday",
-            7 to "Sunday"
         )
     }
 }
