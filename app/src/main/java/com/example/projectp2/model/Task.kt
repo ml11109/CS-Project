@@ -2,31 +2,35 @@ package com.example.projectp2.model
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -40,52 +44,34 @@ data class Task(
     val startTime: LocalTime,
     val endTime: LocalTime,
     val date: LocalDate,
-    val completed: Boolean = false,
-    val exempted: Boolean = false,
-    val notes: String = ""
+    var status: String = CompletionStatus.PENDING,
+    var notes: String = ""
 ) {
     fun isOngoing(): Boolean {
-        return (
-            this.date == LocalDate.now()
-            && this.startTime.isBefore(LocalTime.now())
-            && this.endTime.isAfter(LocalTime.now())
-        )
+        return this.status == CompletionStatus.PENDING
+                && (this.date == LocalDate.now()
+                    && this.startTime.isBefore(LocalTime.now())
+                    && this.endTime.isAfter(LocalTime.now()))
     }
 
     fun isUpcoming(): Boolean {
-        return (
-                this.date.isAfter(LocalDate.now())
-                        || (
-                        this.date == LocalDate.now()
-                                && this.startTime.isAfter(LocalTime.now())
-                        )
-                )
+        return this.status == CompletionStatus.PENDING
+                && (this.date.isAfter(LocalDate.now())
+                    || (this.date == LocalDate.now() && this.startTime.isAfter(LocalTime.now())))
     }
 
     fun isCompleted(): Boolean {
-        return (
-            this.completed
-            && (
-                this.date.isBefore(LocalDate.now())
-                || (
-                    this.date == LocalDate.now()
-                    && this.endTime.isBefore(LocalTime.now())
-                )
-            )
-        )
+        return this.status in listOf(CompletionStatus.COMPLETED, CompletionStatus.SKIPPED)
     }
 
-    fun isNotCompleted(): Boolean {
-        return (
-            !this.completed
-            && (
-                this.date.isBefore(LocalDate.now())
-                || (
-                    this.date == LocalDate.now()
-                    && this.endTime.isBefore(LocalTime.now())
-                )
-            )
-        )
+    fun isFailed(): Boolean {
+        return this.status == CompletionStatus.PENDING
+                && (this.date.isBefore(LocalDate.now())
+                    || (this.date == LocalDate.now() && this.endTime.isBefore(LocalTime.now())))
+    }
+
+    fun isCompletable(): Boolean {
+        return this.isOngoing() || (this.isUpcoming() && this.habit.advancedSettings.allowAdvanceCompletion)
     }
 }
 
@@ -131,7 +117,7 @@ fun TaskCard(userDataViewModel: UserDataViewModel, task: Task, modifier: Modifie
 
                     Checkbox(
                         modifier = Modifier.size(20.dp),
-                        checked = task.completed,
+                        checked = task.status == CompletionStatus.COMPLETED,
                         onCheckedChange = null
                     )
                 }
@@ -161,7 +147,7 @@ fun TaskCard(userDataViewModel: UserDataViewModel, task: Task, modifier: Modifie
 }
 
 @Composable
-fun SimpleTaskCard(userDataViewModel: UserDataViewModel, task: Task, modifier: Modifier = Modifier, cornerSize: Dp = 8.dp) {
+fun SimpleTaskCard(userDataViewModel: UserDataViewModel, task: Task, modifier: Modifier = Modifier, cornerSize: Dp = 12.dp) {
     Box(
         modifier = modifier.shadow(2.dp).background(MaterialTheme.colorScheme.surfaceTint, shape = RoundedCornerShape(4.dp)),
     ) {
@@ -187,4 +173,86 @@ fun SimpleTaskCard(userDataViewModel: UserDataViewModel, task: Task, modifier: M
             )
         }
     }
+}
+
+@Composable
+fun TaskCompletionDialog(task: Task, onDismiss: () -> Unit) {
+    var status by remember { mutableStateOf(task.status) }
+    var notes by remember { mutableStateOf(task.notes) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+
+        title = { Text("Task Completion") },
+
+        text = {
+            Column {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(start = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Completed", style = MaterialTheme.typography.bodyMedium)
+                    Spacer(Modifier.weight(1f))
+                    Checkbox(
+                        checked = status == CompletionStatus.COMPLETED,
+                        onCheckedChange = {
+                            status = if (it) CompletionStatus.COMPLETED else CompletionStatus.PENDING
+                            task.status = status
+                        }
+                    )
+                }
+
+                val numExceptionsUsed = task.habit.taskList.getNumExceptionsUsed(task.date)
+                val numExceptions = task.habit.advancedSettings.numExceptionsPerMonth
+
+                if (task.habit.advancedSettings.allowExceptions && numExceptionsUsed < numExceptions
+                    && task.status != CompletionStatus.SKIPPED) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(start = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Skipped ($numExceptionsUsed/$numExceptions)",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Spacer(Modifier.weight(1f))
+                        Checkbox(
+                            checked = status == CompletionStatus.SKIPPED,
+                            onCheckedChange = {
+                                status = if (it) CompletionStatus.SKIPPED else CompletionStatus.PENDING
+                                task.status = CompletionStatus.SKIPPED
+                            }
+                        )
+                    }
+                }
+                
+                Spacer(Modifier.height(16.dp))
+                OutlinedTextField(
+                    value = notes,
+                    onValueChange = { notes = it },
+                    label = { Text("Notes") }
+                )
+            }
+        },
+
+        confirmButton = {
+            Button(
+                onClick = {
+                    task.status = status
+                    task.notes = notes
+                    onDismiss()
+                }
+            ) {
+                Text("Save")
+            }
+        },
+
+        dismissButton = {
+            Button(
+                onClick = onDismiss
+            ) {
+                Text("Cancel")
+            }
+        }
+    )
 }

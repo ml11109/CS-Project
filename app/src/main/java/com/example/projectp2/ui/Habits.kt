@@ -3,6 +3,7 @@ package com.example.projectp2.ui
 import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -58,12 +59,14 @@ import com.example.projectp2.composables.ScreenSwitcher
 import com.example.projectp2.model.Category
 import com.example.projectp2.model.Filter
 import com.example.projectp2.model.Frequency
-import com.example.projectp2.model.Habit
 import com.example.projectp2.model.HabitCard
 import com.example.projectp2.model.SimpleTaskCard
-import com.example.projectp2.model.Status
+import com.example.projectp2.model.HabitStatus
 import com.example.projectp2.model.Task
 import com.example.projectp2.model.TaskCard
+import com.example.projectp2.model.TaskCompletionDialog
+import com.example.projectp2.model.CompletionStatus
+import com.example.projectp2.model.TaskStatus
 import com.example.projectp2.model.UserDataViewModel
 import com.example.projectp2.model.Week
 import kotlinx.coroutines.CoroutineScope
@@ -74,7 +77,7 @@ import java.time.format.DateTimeFormatter
 fun HabitsScreen(userDataViewModel: UserDataViewModel, navController: NavController, drawerState: DrawerState, scope: CoroutineScope) {
     val boxModifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(8.dp))
     val focusManager = LocalFocusManager.current
-    val filter = Filter()
+    var filter by remember { mutableStateOf(Filter()) }
 
     BoxWithConstraints(
         modifier = Modifier.fillMaxSize()
@@ -88,8 +91,6 @@ fun HabitsScreen(userDataViewModel: UserDataViewModel, navController: NavControl
             scope = scope,
             floatingActionButton = { AddNewFAB(navController) }
         ) { nestedScrollConnection ->
-            val filteredHabits = remember { mutableStateListOf<Habit>().apply { addAll(filter.filterHabits(userDataViewModel.habits)) } }
-
             if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT) {
                 Column(
                     modifier = Modifier
@@ -101,15 +102,13 @@ fun HabitsScreen(userDataViewModel: UserDataViewModel, navController: NavControl
                             detectTapGestures { focusManager.clearFocus() }
                         }
                 ) {
-                    FilterOptions(userDataViewModel, filter, Modifier.fillMaxWidth().height(30.dp)) {
-                        filteredHabits.clear(); filteredHabits.addAll(filter.filterHabits(userDataViewModel.habits))
-                    }
+                    FilterOptions(userDataViewModel, filter, Modifier.fillMaxWidth().height(30.dp)) { filter = it }
                     Spacer(Modifier.height(8.dp))
 
-                    TaskScreen(userDataViewModel, boxModifier.fillMaxWidth().height(maxHeight.times(0.4f)))
+                    TaskScreen(userDataViewModel, filter, boxModifier.fillMaxWidth().height(maxHeight.times(0.4f)))
                     HorizontalDivider(Modifier.fillMaxWidth().padding(12.dp))
 
-                    if (filteredHabits.isEmpty()) {
+                    if (filter.filterHabits(userDataViewModel.habits).isEmpty()) {
                         Column(
                             modifier = Modifier.fillMaxWidth().weight(1f),
                             verticalArrangement = Arrangement.Center,
@@ -119,7 +118,7 @@ fun HabitsScreen(userDataViewModel: UserDataViewModel, navController: NavControl
                             Text("No habits found", style = MaterialTheme.typography.titleMedium, modifier = Modifier.alpha(0.5f).padding(top = 16.dp, bottom = 48.dp))
                         }
                     } else {
-                        HabitList(userDataViewModel, navController, filteredHabits, Modifier.fillMaxWidth().weight(1f))
+                        HabitList(userDataViewModel, navController, filter, Modifier.fillMaxWidth().weight(1f))
                     }
                 }
             }
@@ -143,16 +142,14 @@ fun HabitsScreen(userDataViewModel: UserDataViewModel, navController: NavControl
                         Column(
                             modifier = Modifier.height(contentHeight).weight(1f)
                         ) {
-                            FilterOptions(userDataViewModel, filter, Modifier.fillMaxWidth().height(30.dp)) {
-                                filteredHabits.clear(); filteredHabits.addAll(filter.filterHabits(userDataViewModel.habits))
-                            }
+                            FilterOptions(userDataViewModel, filter, Modifier.fillMaxWidth().height(30.dp)) { filter = it }
                             Spacer(Modifier.height(8.dp))
 
-                            TaskScreen(userDataViewModel, boxModifier.fillMaxSize())
+                            TaskScreen(userDataViewModel, filter, boxModifier.fillMaxSize())
                         }
                         Spacer(Modifier.width(12.dp))
 
-                        if (filteredHabits.isEmpty()) {
+                        if (filter.filterHabits(userDataViewModel.habits).isEmpty()) {
                             Column(
                                 modifier = Modifier.height(contentHeight).weight(1f),
                                 verticalArrangement = Arrangement.Center,
@@ -162,7 +159,7 @@ fun HabitsScreen(userDataViewModel: UserDataViewModel, navController: NavControl
                                 Text("No habits found", style = MaterialTheme.typography.titleMedium, modifier = Modifier.alpha(0.5f).padding(top = 16.dp))
                             }
                         } else {
-                            HabitList(userDataViewModel, navController, filteredHabits, Modifier.height(contentHeight).weight(1f))
+                            HabitList(userDataViewModel, navController, filter, Modifier.height(contentHeight).weight(1f))
                         }
                     }
                 }
@@ -172,14 +169,7 @@ fun HabitsScreen(userDataViewModel: UserDataViewModel, navController: NavControl
 }
 
 @Composable
-fun MiniTasksScreen(userDataViewModel: UserDataViewModel, modifier: Modifier = Modifier) {
-    Box(modifier = modifier) {
-        Text("Tasks")
-    }
-}
-
-@Composable
-fun FilterOptions(userDataViewModel: UserDataViewModel, filter: Filter, modifier: Modifier = Modifier, onFilterChange: () -> Unit) {
+fun FilterOptions(userDataViewModel: UserDataViewModel, filter: Filter, modifier: Modifier = Modifier, onFilterChange: (filter: Filter) -> Unit) {
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically
@@ -193,27 +183,24 @@ fun FilterOptions(userDataViewModel: UserDataViewModel, filter: Filter, modifier
             val textStyle = MaterialTheme.typography.bodySmall
 
             DropdownTextBox(
-                arrayListOf(Status.ALL) + userDataViewModel.statusTypes,
+                arrayListOf(HabitStatus.ALL) + userDataViewModel.habitStatusTypes,
                 "Status", dropdownModifier, textStyle,
             ) {
-                filter.status = it
-                onFilterChange()
+                onFilterChange(filter.copy(status = it))
             }
 
             DropdownTextBox(
                 arrayListOf(Category.ALL) + userDataViewModel.categories,
                 "Category", dropdownModifier, textStyle,
             ) {
-                filter.category = it
-                onFilterChange()
+                onFilterChange(filter.copy(category = it))
             }
 
             DropdownTextBox(
                 arrayListOf(Frequency.ALL) + userDataViewModel.frequencyTypes,
                 "Frequency", dropdownModifier, textStyle,
             ) {
-                filter.frequency = it
-                onFilterChange()
+                onFilterChange(filter.copy(frequency = it))
             }
         }
 
@@ -225,8 +212,7 @@ fun FilterOptions(userDataViewModel: UserDataViewModel, filter: Filter, modifier
                 textStyle = MaterialTheme.typography.bodyMedium,
                 height = 24.dp
             ) {
-                filter.title = it
-                onFilterChange()
+                onFilterChange(filter.copy(title = it))
             }
 
             DatePickerSwitch(
@@ -236,11 +222,10 @@ fun FilterOptions(userDataViewModel: UserDataViewModel, filter: Filter, modifier
                 onDateSelect = { _, year, month, day ->
                     filter.date = LocalDate.of(year, month + 1, day)
                     filter.filterDate = true
-                    onFilterChange()
+                    onFilterChange(filter)
                 },
                 onSwitchOff = {
-                    filter.filterDate = false
-                    onFilterChange()
+                    onFilterChange(filter.copy(filterDate = false))
                 }
             )
         }
@@ -248,67 +233,101 @@ fun FilterOptions(userDataViewModel: UserDataViewModel, filter: Filter, modifier
 }
 
 @Composable
-fun TaskScreen(userDataViewModel: UserDataViewModel, modifier: Modifier = Modifier) {
+fun TaskScreen(userDataViewModel: UserDataViewModel, filter: Filter, modifier: Modifier = Modifier) {
     ScreenSwitcher(2, 0, modifier) {
         when (it) {
-            0 -> TaskColumn(userDataViewModel, modifier = Modifier.fillMaxSize().padding(16.dp))
-            1 -> TaskCalendar(userDataViewModel, modifier = Modifier.fillMaxSize().padding(16.dp))
+            0 -> TaskColumn(userDataViewModel, filter, modifier = Modifier.fillMaxSize().padding(16.dp))
+            1 -> TaskCalendar(userDataViewModel, filter, modifier = Modifier.fillMaxSize().padding(16.dp))
         }
     }
 }
 
 @Composable
-fun TaskColumn(userDataViewModel: UserDataViewModel, modifier: Modifier = Modifier) {
-    var taskStatus by remember { mutableStateOf(Status.ALL) }
-    val tasks = remember { mutableStateListOf<Task>().apply { addAll(userDataViewModel.getAllTasks()) } }
+fun TaskColumn(userDataViewModel: UserDataViewModel, filter: Filter, modifier: Modifier = Modifier) {
+    val tasks = arrayListOf<Task>()
+    var status by remember { mutableStateOf(TaskStatus.ONGOING) }
+    var dialogShown by remember { mutableStateOf(false) }
+    var selectedTask by remember { mutableStateOf<Task?>(null) }
+
+    fun updateTasks() {
+        tasks.clear()
+        tasks.addAll(
+            when (status) {
+                TaskStatus.ALL -> userDataViewModel.getAllTasks(filter)
+                TaskStatus.ONGOING -> userDataViewModel.getOngoingTasks(filter)
+                TaskStatus.UPCOMING -> userDataViewModel.getUpcomingTasks(filter)
+                TaskStatus.COMPLETED -> userDataViewModel.getCompletedTasks(filter)
+                TaskStatus.FAILED -> userDataViewModel.getFailedTasks(filter)
+                else -> userDataViewModel.getAllTasks(filter)
+            }
+        )
+    }
+
+    updateTasks()
 
     Column(
         modifier = modifier
     ) {
         OptionsRow(
-            options = arrayListOf(Status.ALL) + userDataViewModel.statusTypes,
-            initialOption = Status.ALL,
-            modifier = Modifier.fillMaxWidth().height(30.dp)
+            options = userDataViewModel.taskStatusTypes + arrayListOf(TaskStatus.ALL),
+            initialOption = TaskStatus.ONGOING,
+            modifier = Modifier.fillMaxWidth()
         ) {
-            taskStatus = it
-            tasks.clear()
-
-            tasks.addAll(
-                when (taskStatus) {
-                    Status.ALL -> userDataViewModel.getAllTasks()
-                    Status.ONGOING -> userDataViewModel.getOngoingTasks(100)
-                    Status.UPCOMING -> userDataViewModel.getUpcomingTasks(100)
-                    Status.NOT_COMPLETED -> userDataViewModel.getNotCompletedTasks(100)
-                    Status.COMPLETED -> userDataViewModel.getCompletedTasks(100)
-                    else -> userDataViewModel.getAllTasks()
-                }
-            )
+            status = it
+            updateTasks()
         }
-        Spacer(Modifier.height(12.dp))
 
-        LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(tasks.size) { index ->
-                TaskCard(
-                    userDataViewModel,
-                    tasks[index],
-                    Modifier.fillMaxWidth()
+        if (tasks.isNotEmpty()) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize().padding(start = 24.dp, end = 24.dp, top = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(tasks.size) { index ->
+                    val task = tasks[index]
+                    TaskCard(
+                        userDataViewModel,
+                        task,
+                        Modifier.fillMaxWidth().clickable {
+                            if (task.isCompletable()) {
+                                selectedTask = task
+                                dialogShown = true
+                            }
+                        }
+                    )
+                }
+            }
+        }
+
+        else {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "No ${status.lowercase()} tasks found",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.alpha(0.5f)
                 )
+            }
+        }
+
+        if (dialogShown) {
+            TaskCompletionDialog(selectedTask!!) {
+                updateTasks()
+                dialogShown = false
             }
         }
     }
 }
 
 @Composable
-fun TaskCalendar(userDataViewModel: UserDataViewModel, modifier: Modifier = Modifier) {
+fun TaskCalendar(userDataViewModel: UserDataViewModel, filter: Filter, modifier: Modifier = Modifier) {
+    val tasks = arrayListOf<List<Task>>().apply { repeat(7) { add(listOf()) } }
     var firstDayOfWeek by remember { mutableStateOf(LocalDate.now().minusDays(LocalDate.now().dayOfWeek.ordinal.toLong())) }
-    val tasks = remember { mutableStateListOf<List<Task>>().apply { repeat(7) { add(listOf()) } } }
 
     fun setTasks(date: LocalDate) {
         for (dayOfWeek in 0 until 7) {
-            tasks[dayOfWeek] = userDataViewModel.getTasks { it.date == date.plusDays(dayOfWeek.toLong()) }.sortedBy { it.startTime }
+            tasks[dayOfWeek] = userDataViewModel.getTasks(filter) { it.date == date.plusDays(dayOfWeek.toLong()) }.sortedBy { it.startTime }
         }
     }
     setTasks(firstDayOfWeek)
@@ -330,8 +349,8 @@ fun TaskCalendar(userDataViewModel: UserDataViewModel, modifier: Modifier = Modi
                 Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = "Previous")
             }
 
-            Text(firstDayOfWeek.format(DateTimeFormatter.ofPattern("d/MM")) + " - " +
-                        firstDayOfWeek.plusDays(6).format(DateTimeFormatter.ofPattern("d/MM")))
+            Text(firstDayOfWeek.format(DateTimeFormatter.ofPattern("dd/MM")) + " - " +
+                        firstDayOfWeek.plusDays(6).format(DateTimeFormatter.ofPattern("dd/MM")))
 
             IconButton(
                 onClick = {
@@ -376,7 +395,9 @@ fun TaskCalendar(userDataViewModel: UserDataViewModel, modifier: Modifier = Modi
 }
 
 @Composable
-fun HabitList(userDataViewModel: UserDataViewModel, navController: NavController, habits: SnapshotStateList<Habit>, modifier: Modifier = Modifier) {
+fun HabitList(userDataViewModel: UserDataViewModel, navController: NavController, filter: Filter, modifier: Modifier = Modifier) {
+    val habits = filter.filterHabits(userDataViewModel.habits)
+
     Box(
         modifier = modifier
     ) {

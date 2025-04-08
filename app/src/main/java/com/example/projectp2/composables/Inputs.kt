@@ -416,7 +416,8 @@ fun OptionsRow(
     var selected by remember { mutableStateOf(initialOption) }
     LazyRow(
         modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         items(options.size) { index -> val option = options[index]
             FilterChip(

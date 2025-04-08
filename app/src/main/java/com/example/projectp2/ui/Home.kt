@@ -8,10 +8,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -26,12 +29,31 @@ import com.example.projectp2.composables.ScreenSwitcher
 import com.example.projectp2.model.UserDataViewModel
 import com.example.projectp2.model.Task
 import com.example.projectp2.model.TaskCard
+import com.example.projectp2.model.TaskCompletionDialog
 import kotlinx.coroutines.CoroutineScope
 import java.time.format.DateTimeFormatter
 
 @Composable
 fun HomeScreen(userDataViewModel: UserDataViewModel, navController: NavController, drawerState: DrawerState, scope: CoroutineScope) {
     val boxModifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(8.dp))
+
+    val upcomingTasks = remember {
+        mutableStateListOf<Task>().apply {
+            addAll(userDataViewModel.getUpcomingTasks())
+        }
+    }
+    val completedTasks = remember {
+        mutableStateListOf<Task>().apply {
+            addAll(userDataViewModel.getCompletedTasks())
+        }
+    }
+
+    fun updateTasks() {
+        completedTasks.clear()
+        completedTasks.addAll(userDataViewModel.getCompletedTasks().take(10))
+        upcomingTasks.clear()
+        upcomingTasks.addAll(userDataViewModel.getUpcomingTasks().take(10))
+    }
 
     BoxWithConstraints(
         modifier = Modifier.fillMaxSize()
@@ -63,18 +85,19 @@ fun HomeScreen(userDataViewModel: UserDataViewModel, navController: NavControlle
                     Spacer(Modifier.height(8.dp))
 
                     Row(modifier = Modifier.fillMaxWidth().weight(1f)) {
+
                         MiniTaskColumn(
-                            "Upcoming", userDataViewModel.getUpcomingTasks(10),
+                            "Upcoming", upcomingTasks,
                             userDataViewModel, navController,
                             boxModifier.fillMaxHeight().weight(1f)
-                        )
+                        ) { updateTasks() }
                         Spacer(Modifier.width(8.dp))
 
                         MiniTaskColumn(
-                            "Completed", userDataViewModel.getCompletedTasks(10),
+                            "Completed", completedTasks,
                             userDataViewModel, navController,
                             boxModifier.fillMaxHeight().weight(1f)
-                        )
+                        ) { updateTasks() }
                     }
                 }
             }
@@ -98,17 +121,17 @@ fun HomeScreen(userDataViewModel: UserDataViewModel, navController: NavControlle
                         Spacer(Modifier.width(8.dp))
 
                         MiniTaskColumn(
-                            "Upcoming", userDataViewModel.getUpcomingTasks(10),
+                            "Upcoming", upcomingTasks,
                             userDataViewModel, navController,
                             boxModifier.fillMaxHeight().weight(1f)
-                        )
+                        ) { updateTasks() }
                         Spacer(Modifier.width(8.dp))
 
                         MiniTaskColumn(
-                            "Completed", userDataViewModel.getCompletedTasks(10),
+                            "Completed", completedTasks,
                             userDataViewModel, navController,
                             boxModifier.fillMaxHeight().weight(1f)
-                        )
+                        ) { updateTasks() }
                     }
                 }
             }
@@ -173,7 +196,32 @@ fun MiniScreen(userDataViewModel: UserDataViewModel, modifier: Modifier = Modifi
 }
 
 @Composable
-fun MiniTaskColumn(title: String, tasks: List<Task>, userDataViewModel: UserDataViewModel, navController: NavController, modifier: Modifier = Modifier) {
+fun MiniTasksScreen(userDataViewModel: UserDataViewModel, modifier: Modifier = Modifier) {
+    Box(modifier = modifier) {
+        Text("Tasks")
+    }
+}
+
+@Composable
+fun MiniStatsScreen(userDataViewModel: UserDataViewModel, modifier: Modifier = Modifier) {
+    Box(modifier = modifier) {
+        Text("Stats")
+    }
+}
+
+@Composable
+fun MiniAchievementsScreen(userDataViewModel: UserDataViewModel, modifier: Modifier = Modifier) {
+    Box(modifier = modifier) {
+        Text("Achievements")
+    }
+}
+
+@Composable
+fun MiniTaskColumn(title: String, tasks: List<Task>, userDataViewModel: UserDataViewModel, navController: NavController,
+                   modifier: Modifier = Modifier, updateTasks: () -> Unit) {
+    var dialogShown by remember { mutableStateOf(false) }
+    var selectedTask by remember { mutableStateOf<Task?>(null) }
+
     Column(
         modifier = modifier
     ) {
@@ -194,21 +242,34 @@ fun MiniTaskColumn(title: String, tasks: List<Task>, userDataViewModel: UserData
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             items(tasks.size) { index ->
+                val task = tasks[index]
                 TaskCard(
                     userDataViewModel,
-                    tasks[index],
-                    Modifier.fillMaxWidth()
+                    task,
+                    Modifier.fillMaxWidth().clickable {
+                        if (task.isCompletable()) {
+                            selectedTask = task
+                            dialogShown = true
+                        }
+                    }
                 )
             }
 
             if (tasks.isNotEmpty()) {
                 item {
                     Text(
-                        text = "See more...",
+                        text = "See more",
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(8.dp).clickable { navController.navigate("habits") }
                     )
                 }
+            }
+        }
+
+        if (dialogShown) {
+            TaskCompletionDialog(task = selectedTask!!) {
+                updateTasks()
+                dialogShown = false
             }
         }
     }

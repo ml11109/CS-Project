@@ -72,6 +72,7 @@ import com.example.projectp2.composables.CustomDropdownSelector
 import com.example.projectp2.composables.ExpandingTextField
 import com.example.projectp2.composables.OptionsRow
 import com.example.projectp2.composables.TimePickerButton
+import com.example.projectp2.model.AdvancedSettings
 import com.example.projectp2.model.Category
 import com.example.projectp2.model.Frequency
 import com.example.projectp2.model.Habit
@@ -87,6 +88,7 @@ fun DetailsScreen(userDataViewModel: UserDataViewModel, navController: NavContro
     val habit = oldHabit.copy()
     val isNewHabit = habitType != 1
     var valid by remember { mutableStateOf(false) }
+    var advancedSettings by remember { mutableStateOf(habit.advancedSettings.copy()) }
     val focusManager = LocalFocusManager.current
 
     fun checkValidity() {
@@ -117,6 +119,7 @@ fun DetailsScreen(userDataViewModel: UserDataViewModel, navController: NavContro
             userDataViewModel.habits[userDataViewModel.habits.indexOf(oldHabit)] = habit
             habit.taskList.updateTasks(oldHabit, habit)
         }
+        habit.advancedSettings = advancedSettings
         navController.popBackStack()
     }
 
@@ -144,7 +147,7 @@ fun DetailsScreen(userDataViewModel: UserDataViewModel, navController: NavContro
                 TimingDetails(userDataViewModel, navController, habit, oldHabit, isNewHabit, Modifier.fillMaxWidth()) { checkValidity() }
                 HorizontalDivider(Modifier.fillMaxWidth().padding(start = 8.dp, end = 8.dp, top = 12.dp, bottom = 12.dp))
 
-                AdvancedSettings(habit, Modifier.fillMaxWidth())
+                AdvancedSettingsBox(advancedSettings, Modifier.fillMaxWidth()) { advancedSettings = it; checkValidity() }
                 HorizontalDivider(Modifier.fillMaxWidth().padding(start = 8.dp, end = 8.dp, top = 12.dp))
 
                 DetailsButtons(userDataViewModel, navController, habit, oldHabit, isNewHabit, valid,
@@ -173,7 +176,7 @@ fun DetailsScreen(userDataViewModel: UserDataViewModel, navController: NavContro
                 }
                 HorizontalDivider(Modifier.fillMaxWidth().padding(start = 8.dp, end = 8.dp, top = 12.dp, bottom = 12.dp))
 
-                AdvancedSettings(habit, Modifier.fillMaxWidth())
+                AdvancedSettingsBox(advancedSettings, Modifier.fillMaxWidth()) { advancedSettings = it; checkValidity() }
                 HorizontalDivider(Modifier.fillMaxWidth().padding(start = 8.dp, end = 8.dp, top = 12.dp))
 
                 DetailsButtons(userDataViewModel, navController, habit, oldHabit, isNewHabit, valid,
@@ -254,11 +257,11 @@ fun TimingDetails(
 }
 
 @Composable
-fun AdvancedSettings(habit: Habit, modifier: Modifier = Modifier) {
+fun AdvancedSettingsBox(
+    advancedSettings: AdvancedSettings, modifier: Modifier = Modifier,
+    onSettingsChange: (advancedSettings: AdvancedSettings) -> Unit
+) {
     var showAdvancedSettings by remember { mutableStateOf(false) }
-    var sendNotifications by remember { mutableStateOf(habit.sendNotifications) }
-    var numExceptionsPerMonth by remember { mutableStateOf(if (habit.numExceptionsPerMonth == 0) "" else habit.numExceptionsPerMonth.toString()) }
-    var allowExceptions by remember { mutableStateOf(habit.allowExceptions) }
 
     Column(
         modifier = modifier,
@@ -301,9 +304,9 @@ fun AdvancedSettings(habit: Habit, modifier: Modifier = Modifier) {
                         Text("Notifications")
                         Spacer(Modifier.weight(1f))
                         Checkbox(
-                            checked = sendNotifications,
+                            checked = advancedSettings.sendNotifications,
                             onCheckedChange = {
-                                sendNotifications = it; habit.sendNotifications = it
+                                onSettingsChange(advancedSettings.copy(sendNotifications = it))
                             }
                         )
                     }
@@ -318,11 +321,10 @@ fun AdvancedSettings(habit: Habit, modifier: Modifier = Modifier) {
                         Spacer(Modifier.weight(1f))
 
                         OutlinedTextField(
-                            value = numExceptionsPerMonth,
+                            value = if (advancedSettings.numExceptionsPerMonth == 0) "" else advancedSettings.numExceptionsPerMonth.toString(),
                             onValueChange = { newValue ->
                                 if (newValue.isEmpty() || newValue.isDigitsOnly() && newValue.length <= 2) {
-                                    numExceptionsPerMonth = newValue
-                                    habit.numExceptionsPerMonth = if (newValue.isEmpty()) 0 else newValue.toInt()
+                                    onSettingsChange(advancedSettings.copy(numExceptionsPerMonth = if (newValue.isEmpty()) 0 else newValue.toInt()))
                                 }
                             },
                             modifier = Modifier.width(54.dp).height(54.dp),
@@ -332,9 +334,25 @@ fun AdvancedSettings(habit: Habit, modifier: Modifier = Modifier) {
                         Text("per month", Modifier.padding(start = 12.dp, end = 16.dp))
 
                         Checkbox(
-                            checked = allowExceptions,
+                            checked = advancedSettings.allowExceptions,
                             onCheckedChange = {
-                                allowExceptions = it; habit.allowExceptions = it
+                                onSettingsChange(advancedSettings.copy(allowExceptions = it))
+                            }
+                        )
+                    }
+                    Spacer(Modifier.height(12.dp))
+
+                    // Allow advance completion
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Allow advance completion")
+                        Spacer(Modifier.weight(1f))
+                        Checkbox(
+                            checked = advancedSettings.allowAdvanceCompletion,
+                            onCheckedChange = {
+                                onSettingsChange(advancedSettings.copy(allowAdvanceCompletion = it))
                             }
                         )
                     }

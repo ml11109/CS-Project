@@ -19,11 +19,16 @@ class UserDataViewModel : ViewModel() {
         habits[0].taskList.createTasks(habits[0])
     }
 
-    val statusTypes = arrayListOf(
-        Status.ONGOING,
-        Status.UPCOMING,
-        Status.COMPLETED,
-        Status.NOT_COMPLETED
+    val habitStatusTypes = arrayListOf(
+        HabitStatus.ONGOING,
+        HabitStatus.COMPLETED
+    )
+
+    val taskStatusTypes = arrayListOf(
+        TaskStatus.ONGOING,
+        TaskStatus.UPCOMING,
+        TaskStatus.COMPLETED,
+        TaskStatus.FAILED
     )
 
     val categories = arrayListOf(
@@ -58,9 +63,9 @@ class UserDataViewModel : ViewModel() {
         Habit() // TODO: Create habit templates
     )
 
-    fun getTasks(criterion: (Task) -> Boolean): List<Task> {
+    fun getTasks(filter: Filter = Filter(), criterion: (Task) -> Boolean): List<Task> {
         val tasks = ArrayList<Task>()
-        for (habit in habits) {
+        for (habit in filter.filterHabits(habits)) {
             for (task in habit.taskList.tasks) {
                 if (criterion(task)) {
                     tasks.add(task)
@@ -70,79 +75,36 @@ class UserDataViewModel : ViewModel() {
         return tasks
     }
 
-    fun getAllTasks(): List<Task> {
+    fun getAllTasks(filter: Filter = Filter()): List<Task> {
         // Returns all tasks sorted in ascending order by start time
 
-        return getTasks { true }.sortedBy { LocalDateTime.of(it.date, it.startTime) }
+        return getTasks(filter) { true }.sortedBy { LocalDateTime.of(it.date, it.startTime) }
     }
 
-    fun getOngoingTasks(numTasks: Int): List<Task> {
-        // Returns tasks with the current time within its duration
+    fun getOngoingTasks(filter: Filter = Filter()): List<Task> {
+        // Returns pending tasks with the current time within its duration
         // sorted in ascending order by start time
 
-        return getTasks { it.isOngoing() }.sortedBy { it.startTime }.take(numTasks)
+        return getTasks(filter) { it.isOngoing() }.sortedBy { it.startTime }
     }
 
-    fun getUpcomingTasks(numTasks: Int): List<Task> {
-        // Gets tasks with the start time after the current time
-        // and returns the first numTasks tasks, as sorted in ascending order by start time
+    fun getUpcomingTasks(filter: Filter = Filter()): List<Task> {
+        // Returns pending tasks with the start time after the current time
+        // sorted in ascending order by start time
 
-        return getTasks { it.isUpcoming() }.sortedBy { LocalDateTime.of(it.date, it.startTime) }.take(numTasks)
+        return getTasks(filter) { it.isUpcoming() }.sortedBy { LocalDateTime.of(it.date, it.startTime) }
     }
 
-    fun getCompletedTasks(numTasks: Int): List<Task> {
-        // Gets completed tasks with the end time before the current time
-        // and returns the first numTasks tasks, as sorted in descending order by end time
+    fun getCompletedTasks(filter: Filter = Filter()): List<Task> {
+        // Returns completed and skipped tasks sorted in descending order by end time
 
-        return getTasks { it.isCompleted() }.sortedByDescending { LocalDateTime.of(it.date, it.endTime) }.take(numTasks)
+        return getTasks(filter) { it.isCompleted() }.sortedByDescending { LocalDateTime.of(it.date, it.endTime) }
     }
 
-    fun getNotCompletedTasks(numTasks: Int): List<Task> {
-        // Gets not completed tasks with the end time before the current time
-        // and returns the first numTasks tasks, as sorted in descending order by end time
+    fun getFailedTasks(filter: Filter = Filter()): List<Task> {
+        // Returns pending tasks with the end time before the current time
+        // sorted in descending order by end time
 
-        return getTasks { it.isNotCompleted() }.sortedByDescending { LocalDateTime.of(it.date, it.endTime) }.take(numTasks)
-    }
-}
-
-object Status {
-    const val ALL = "All"
-    const val ONGOING = "Ongoing"
-    const val UPCOMING = "Upcoming"
-    const val NOT_COMPLETED = "Not Completed"
-    const val COMPLETED = "Completed"
-    const val NONE = "None"
-}
-
-object Category {
-    const val ALL = "All"
-    const val PERSONAL = "Personal"
-    const val WORK = "Work"
-    const val HEALTH = "Health"
-    const val OTHER = "Other"
-    const val NONE = "None"
-}
-
-object Frequency {
-    const val ALL = "All"
-    const val DAILY = "Daily"
-    const val WEEKLY = "Weekly"
-    const val MONTHLY = "Monthly"
-    const val NONE = "None"
-}
-
-object Week {
-    val dayNames = mapOf(
-        1 to "Monday",
-        2 to "Tuesday",
-        3 to "Wednesday",
-        4 to "Thursday",
-        5 to "Friday",
-        6 to "Saturday",
-        7 to "Sunday"
-    )
-
-    fun getDayName(dayOfWeek: Int): String {
-        return dayNames[dayOfWeek] ?: ""
+        return getTasks(filter) { it.isFailed() }.sortedByDescending { LocalDateTime.of(it.date, it.endTime) }
     }
 }

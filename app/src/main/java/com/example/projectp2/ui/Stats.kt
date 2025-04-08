@@ -52,17 +52,3 @@ fun StatsScreen(userDataViewModel: UserDataViewModel, navController: NavControll
         }
     }
 }
-
-@Composable
-fun MiniStatsScreen(userDataViewModel: UserDataViewModel, modifier: Modifier = Modifier) {
-    Box(modifier = modifier) {
-        Text("Stats")
-    }
-}
-
-@Composable
-fun MiniAchievementsScreen(userDataViewModel: UserDataViewModel, modifier: Modifier = Modifier) {
-    Box(modifier = modifier) {
-        Text("Achievements")
-    }
-}

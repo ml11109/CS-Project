@@ -12,6 +12,7 @@ import com.example.projectp2.R
 
 val Roboto = FontFamily(
     Font(R.font.roboto, FontWeight.Normal),
+    Font(R.font.roboto_medium, FontWeight.Medium),
     Font(R.font.roboto_bold, FontWeight.Bold)
 )
 

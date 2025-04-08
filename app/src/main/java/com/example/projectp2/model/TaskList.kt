@@ -47,7 +47,17 @@ data class TaskList(
     }
 
     fun getProgress(): Float {
-        return if (tasks.isEmpty()) 0f else tasks.filter { it.completed || it.exempted }.size.toFloat() / tasks.size.toFloat()
+        return if (tasks.isEmpty()) 0f else tasks.filter { it.status in listOf(CompletionStatus.COMPLETED, CompletionStatus.SKIPPED) }.size.toFloat() / tasks.size.toFloat()
+    }
+
+    fun getNumExceptionsUsed(date: LocalDate): Int {
+        var num = 0
+        for (task in tasks) {
+            if (task.date.month == date.month && task.status == CompletionStatus.SKIPPED) {
+                num++
+            }
+        }
+        return num
     }
 
     fun copy(habit: Habit): TaskList {

@@ -47,9 +47,7 @@ data class Habit(
     var category: String = Category.NONE,
     var frequency: String = Frequency.NONE,
     var taskList: TaskList = TaskList(),
-    var sendNotifications: Boolean = true,
-    var numExceptionsPerMonth: Int = 0,
-    var allowExceptions: Boolean = false
+    var advancedSettings: AdvancedSettings = AdvancedSettings(),
 ) {
     fun getStatus(): String {
         return if (taskList.getProgress() == 1f) "Completed" else "Ongoing"
@@ -62,9 +60,7 @@ data class Habit(
             category,
             frequency,
             TaskList(),
-            sendNotifications,
-            numExceptionsPerMonth,
-            allowExceptions
+            advancedSettings.copy()
         )
         newHabit.taskList = taskList.copy(newHabit)
         return newHabit
