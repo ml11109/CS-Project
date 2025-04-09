@@ -111,6 +111,9 @@ fun DetailsScreen(userDataViewModel: UserDataViewModel, navController: NavContro
             if (habit.taskList.startTimes[index].isAfter(habit.taskList.endTimes[index])) {
                 valid = false; break
             }
+            if (habit.taskList.startDate == LocalDate.now() && habit.taskList.endTimes[index].isBefore(LocalTime.now())) {
+                valid = false; break
+            }
         }
     }
 
@@ -127,6 +130,8 @@ fun DetailsScreen(userDataViewModel: UserDataViewModel, navController: NavContro
         }
 
         navController.popBackStack()
+        userDataViewModel.updateStatistic("Habits Created", 1, add = true)
+        userDataViewModel.updateHabitCompletion(context)
         userDataViewModel.saveHabits(context)
         Toast.makeText(context, "Habit saved", Toast.LENGTH_SHORT).show()
     }
@@ -491,6 +496,9 @@ fun TimeSelector(habit: Habit, modifier: Modifier = Modifier, checkValidity: () 
     val startTimes = remember { mutableStateListOf<LocalTime>().apply { addAll(habit.taskList.startTimes) } }
     val endTimes = remember { mutableStateListOf<LocalTime>().apply { addAll(habit.taskList.endTimes) } }
 
+    fun invalid1(index: Int) = startTimes[index].isAfter(endTimes[index])
+    fun invalid2(index: Int) = habit.taskList.getFirstDate(habit) == LocalDate.now() && endTimes[index].isBefore(LocalTime.now())
+
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -517,7 +525,8 @@ fun TimeSelector(habit: Habit, modifier: Modifier = Modifier, checkValidity: () 
             items(startTimes.size) { index ->
                 Column(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Row(
                         modifier.fillMaxWidth().padding(start = 16.dp),
@@ -526,7 +535,7 @@ fun TimeSelector(habit: Habit, modifier: Modifier = Modifier, checkValidity: () 
                     ) {
                         Text(
                             startTimes[index].format(DateTimeFormatter.ofPattern("hh:mm a")),
-                            color = if (startTimes[index].isAfter(endTimes[index])) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
+                            color = if (invalid1(index) || invalid2(index)) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
                         )
                         TimePickerButton(
                             time = startTimes[index]
@@ -539,7 +548,7 @@ fun TimeSelector(habit: Habit, modifier: Modifier = Modifier, checkValidity: () 
                         Text("to")
                         Text(
                             endTimes[index].format(DateTimeFormatter.ofPattern("hh:mm a")),
-                            color = if (startTimes[index].isAfter(endTimes[index])) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
+                            color = if (invalid1(index) || invalid2(index)) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
                         )
                         TimePickerButton(
                             time = endTimes[index]
@@ -562,8 +571,12 @@ fun TimeSelector(habit: Habit, modifier: Modifier = Modifier, checkValidity: () 
                         }
                     }
 
-                    if (startTimes[index].isAfter(endTimes[index])) {
+                    if (invalid1(index)) {
                         Text("Start time cannot be after end time", color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center)
+                    }
+
+                    if (invalid2(index)) {
+                        Text("Task will already have ended", color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center)
                     }
                 }
             }

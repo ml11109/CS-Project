@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.rememberScrollState
@@ -50,6 +51,7 @@ import com.example.projectp2.composables.FadeColumn
 import com.example.projectp2.composables.OptionsRow
 import com.example.projectp2.composables.TabScreen
 import com.example.projectp2.composables.WeekSelector
+import com.example.projectp2.model.AchievementCard
 import com.example.projectp2.model.Task
 import com.example.projectp2.model.TaskStatus
 import com.example.projectp2.model.UserDataViewModel
@@ -58,9 +60,9 @@ import kotlinx.coroutines.CoroutineScope
 import java.time.LocalDate
 
 @Composable
-fun StatsAndAchievementsScreen(userDataViewModel: UserDataViewModel, navController: NavController, drawerState: DrawerState, scope: CoroutineScope) {
+fun StatisticsScreen(userDataViewModel: UserDataViewModel, navController: NavController, drawerState: DrawerState, scope: CoroutineScope) {
     AppScaffold(
-        title = stringResource(R.string.app_name),
+        title = "Statistics",
         navController = navController,
         drawerState = drawerState,
         scope = scope,
@@ -85,9 +87,9 @@ fun StatsAndAchievementsScreen(userDataViewModel: UserDataViewModel, navControll
             ) {
                 val screenModifier = Modifier.fillMaxSize().padding(16.dp)
                 when (it) {
-                    0 -> GraphScreen(userDataViewModel, navController, screenModifier)
-                    1 -> StatsScreen(userDataViewModel, navController, screenModifier)
-                    2 -> AchievementsScreen(userDataViewModel, navController, screenModifier)
+                    0 -> GraphScreen(userDataViewModel, screenModifier)
+                    1 -> StatsScreen(userDataViewModel, screenModifier)
+                    2 -> AchievementsScreen(userDataViewModel, Modifier.fillMaxSize().padding(horizontal = 32.dp))
                 }
             }
         }
@@ -95,7 +97,7 @@ fun StatsAndAchievementsScreen(userDataViewModel: UserDataViewModel, navControll
 }
 
 @Composable
-fun GraphScreen(userDataViewModel: UserDataViewModel, navController: NavController, modifier: Modifier = Modifier) {
+fun GraphScreen(userDataViewModel: UserDataViewModel, modifier: Modifier = Modifier) {
     var firstDayOfWeek by remember { mutableStateOf(LocalDate.now().minusDays(LocalDate.now().dayOfWeek.ordinal.toLong())) }
     var status by remember { mutableStateOf(TaskStatus.ALL) }
     val chartData = remember { mutableStateListOf<BarChartItem>().apply { repeat(7) { add(BarChartItem("", 0f)) } } }
@@ -167,25 +169,25 @@ fun GraphScreen(userDataViewModel: UserDataViewModel, navController: NavControll
 }
 
 @Composable
-fun StatsScreen(userDataViewModel: UserDataViewModel, navController: NavController, modifier: Modifier = Modifier) {
+fun StatsScreen(userDataViewModel: UserDataViewModel, modifier: Modifier = Modifier, mini: Boolean = false) {
     Column(
         modifier = modifier
     ) {
         Column(
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(8.dp))
-                .padding(horizontal = 32.dp, vertical = 16.dp)
+                .padding(horizontal = 32.dp, vertical = if (mini) 0.dp else 16.dp)
         ) {
             FadeColumn(
                 backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
-                fadeHeight = 16.dp,
+                fadeHeight = if (mini) 12.dp else 16.dp,
                 modifier = Modifier
             ) {
-                val numColumns = if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT) 1 else 2
+                val numColumns = if (mini || LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT) 1 else 2
 
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(numColumns),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(if (mini) 12.dp else 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(64.dp)
                 ) {
                     items(numColumns) { Spacer(Modifier) }
@@ -220,10 +222,27 @@ fun StatsScreen(userDataViewModel: UserDataViewModel, navController: NavControll
 }
 
 @Composable
-fun AchievementsScreen(userDataViewModel: UserDataViewModel, navController: NavController, modifier: Modifier = Modifier) {
-    Column(
+fun AchievementsScreen(userDataViewModel: UserDataViewModel, modifier: Modifier = Modifier, mini: Boolean = false) {
+    val achievements = userDataViewModel.achievements
+
+    FadeColumn(
+        backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
+        fadeHeight = if (mini) 8.dp else 0.dp,
         modifier = modifier
     ) {
-        Text("Achievements")
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            item { Spacer(Modifier.height(if (mini) 0.dp else 8.dp)) }
+
+            items(achievements.size) { index ->
+                AchievementCard(
+                    achievements[index],
+                    Modifier.fillMaxWidth(),
+                )
+            }
+            item { Spacer(Modifier) }
+        }
     }
 }

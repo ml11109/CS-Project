@@ -8,8 +8,8 @@ import java.time.LocalTime
 
 data class TaskList(
     var tasks: ArrayList<Task> = ArrayList(),
-    var startDate: LocalDate = LocalDate.now(),
-    var endDate: LocalDate = LocalDate.now(),
+    var startDate: LocalDate = LocalDate.now().plusDays(1),
+    var endDate: LocalDate = LocalDate.now().plusDays(1),
     var startTimes: ArrayList<LocalTime> = ArrayList(),
     var endTimes: ArrayList<LocalTime> = ArrayList(),
     var daysOfWeek: HashMap<Int, Boolean> = HashMap<Int, Boolean>().apply {
@@ -66,6 +66,20 @@ data class TaskList(
             }
         }
         return num
+    }
+
+    fun getFirstDate(habit: Habit): LocalDate? {
+        // Gets first date with task given current task list parameters
+        var date = startDate
+        while (date <= endDate) {
+            if (
+                habit.frequency == Frequency.DAILY
+                || (habit.frequency == Frequency.WEEKLY && daysOfWeek[date.dayOfWeek.value] == true)
+                || (habit.frequency == Frequency.MONTHLY && daysOfMonth[date.dayOfMonth] == true)
+            ) return date
+            date = date.plusDays(1)
+        }
+        return null
     }
 
     fun copy(habit: Habit): TaskList {

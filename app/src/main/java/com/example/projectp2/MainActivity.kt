@@ -70,7 +70,7 @@ import com.example.projectp2.ui.InfoScreen
 import com.example.projectp2.ui.OnboardingScreen
 import com.example.projectp2.ui.SettingsScreen
 import com.example.projectp2.ui.SplashScreen
-import com.example.projectp2.ui.StatsAndAchievementsScreen
+import com.example.projectp2.ui.StatisticsScreen
 import com.example.projectp2.ui.theme.ProjectP2Theme
 import com.example.projectp2.util.createNotificationChannel
 import kotlinx.coroutines.CoroutineScope
@@ -102,6 +102,7 @@ fun App() {
 //    habit.taskList.createTasks(context, userDataViewModel, habit)
 
     userDataViewModel.loadData(context)
+    userDataViewModel.updateStreak(context)
     createNotificationChannel(context)
 
     ModalNavigationDrawer(
@@ -137,7 +138,7 @@ fun AppNavigation(userDataViewModel: UserDataViewModel, navController: NavHostCo
             DetailsScreen(userDataViewModel, navController, drawerState, scope, habitType, habit)
         }
 
-        composable("stats") { StatsAndAchievementsScreen(userDataViewModel, navController, drawerState, scope) }
+        composable("stats") { StatisticsScreen(userDataViewModel, navController, drawerState, scope) }
         composable("info") { InfoScreen(userDataViewModel, navController, drawerState, scope) }
 
         composable("settings/{setting}") { backStackEntry ->
@@ -227,7 +228,7 @@ fun DrawerContent(navController: NavHostController, drawerState: DrawerState, sc
                 currentRoute?.contains(screenRoutes[index])?.let {
                     NavigationDrawerItem(
                         icon = { Icon(screenIcons[index], contentDescription = screenTitles[index]) },
-                        label = { Text(text = screenTitles[index], fontSize = 18.sp) },
+                        label = { Text(text = screenTitles[index], fontSize = 18.sp, modifier = Modifier.padding(start = 16.dp)) },
                         selected = it,
                         onClick = {
                             scope.launch { drawerState.close() }

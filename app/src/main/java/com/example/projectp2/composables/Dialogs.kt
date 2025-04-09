@@ -5,6 +5,7 @@ import android.app.TimePickerDialog
 import android.widget.DatePicker
 import android.widget.TimePicker
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
@@ -24,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import java.time.LocalDate
 import java.time.LocalTime
 
@@ -148,7 +150,7 @@ fun BasicAlertDialog(
     if (showAlertDialog) {
         AlertDialog(
             icon = {
-                Icon(icon, contentDescription = null)
+                Icon(icon, contentDescription = null, modifier = Modifier.size(50.dp))
             },
             title = {
                 Text(title, textAlign = TextAlign.Center)

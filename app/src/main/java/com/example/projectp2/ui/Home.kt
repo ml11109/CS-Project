@@ -1,7 +1,6 @@
 package com.example.projectp2.ui
 
 import android.content.res.Configuration
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -173,20 +172,10 @@ fun InfoBar(userDataViewModel: UserDataViewModel, navController: NavController, 
                     style = MaterialTheme.typography.titleMedium
                 )
 
-                else -> Row {
-                    Text(
-                        text = "You have ${ongoingTasks.size} ongoing tasks",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    Spacer(Modifier.width(16.dp))
-                    Text(
-                        text = "Click to view ->",
-                        style = MaterialTheme.typography.titleMedium.copy(color = MaterialTheme.colorScheme.primary),
-                        modifier = Modifier.clickable {
-                            navController.navigate("habits/")
-                        }
-                    )
-                }
+                else -> Text(
+                    text = "You have ${ongoingTasks.size} ongoing tasks!",
+                    style = MaterialTheme.typography.titleMedium
+                )
             }
         }
     }
@@ -195,26 +184,29 @@ fun InfoBar(userDataViewModel: UserDataViewModel, navController: NavController, 
 @Composable
 fun MiniScreen(userDataViewModel: UserDataViewModel, modifier: Modifier = Modifier) {
     PagerSwitcher(3, modifier) { screenNum ->
-        val screenModifier = Modifier.fillMaxSize().padding(16.dp)
-        when (screenNum) {
-            1, 4 -> TaskColumn(userDataViewModel, Filter(), screenModifier)
-            2 -> MiniStatsScreen(userDataViewModel, screenModifier)
-            3, 0 -> MiniAchievementsScreen(userDataViewModel, screenModifier)
+        Column(
+            modifier = Modifier.fillMaxSize().padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            if (screenNum !in listOf(1, 4)) {
+                Text(
+                    text = when (screenNum) {
+                        2 -> "Statistics"
+                        3 -> "Achievements"
+                        else -> ""
+                    },
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            when (screenNum) {
+                1, 4 -> TaskColumn(userDataViewModel, Filter(), Modifier.fillMaxSize().padding(bottom = 8.dp))
+                2 -> StatsScreen(userDataViewModel, Modifier.fillMaxSize().padding(bottom = 8.dp), mini = true)
+                3, 0 -> AchievementsScreen(userDataViewModel, Modifier.fillMaxSize().padding(start = 32.dp, end = 32.dp, bottom = 8.dp), mini = true)
+            }
         }
-    }
-}
-
-@Composable
-fun MiniStatsScreen(userDataViewModel: UserDataViewModel, modifier: Modifier = Modifier) {
-    Box(modifier = modifier) {
-        Text("Stats")
-    }
-}
-
-@Composable
-fun MiniAchievementsScreen(userDataViewModel: UserDataViewModel, modifier: Modifier = Modifier) {
-    Box(modifier = modifier) {
-        Text("Achievements")
     }
 }
 
@@ -242,7 +234,7 @@ fun MiniTaskColumn(title: String, tasks: SnapshotStateList<Task>, userDataViewMo
         FadeColumn(
             backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
             fadeHeight = 8.dp,
-            modifier = Modifier.fillMaxSize().padding(8.dp)
+            modifier = Modifier.fillMaxSize().padding(12.dp)
         ) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
@@ -257,10 +249,8 @@ fun MiniTaskColumn(title: String, tasks: SnapshotStateList<Task>, userDataViewMo
                         userDataViewModel,
                         task,
                         Modifier.fillMaxWidth().clickable {
-                            if (task.isCompletable(userDataViewModel)) {
-                                selectedTaskIndex = index
-                                dialogShown = true
-                            }
+                            selectedTaskIndex = index
+                            dialogShown = true
                         }
                     )
                 }
@@ -281,14 +271,10 @@ fun MiniTaskColumn(title: String, tasks: SnapshotStateList<Task>, userDataViewMo
         if (dialogShown) {
             TaskCompletionDialog(
                 userDataViewModel,
-                tasks[selectedTaskIndex],
-                onDismiss = {
-                    updateTasks()
-                    dialogShown = false
-                },
+                tasks[selectedTaskIndex]
             ) {
-                userDataViewModel.saveHabits(context)
-                Toast.makeText(context, "Task details saved", Toast.LENGTH_SHORT).show()
+                updateTasks()
+                dialogShown = false
             }
         }
     }

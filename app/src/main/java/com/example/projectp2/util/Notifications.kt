@@ -59,8 +59,8 @@ class NotificationReceiver : BroadcastReceiver() {
 
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val notification = NotificationCompat.Builder(context, "reminder_channel")
-            .setContentTitle("Upcoming: $habitTitle")
-            .setContentText("Upcoming: $habitDescription")
+            .setContentTitle("Upcoming task: $habitTitle")
+            .setContentText(habitDescription)
             .setSmallIcon(R.drawable.notification_icon)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .build()

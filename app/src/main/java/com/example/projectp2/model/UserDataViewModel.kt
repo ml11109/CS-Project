@@ -7,21 +7,14 @@ import androidx.lifecycle.ViewModel
 import com.example.projectp2.util.loadObjectList
 import com.example.projectp2.util.saveObjectList
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 
 class UserDataViewModel : ViewModel() {
     var habits = ArrayList<Habit>()
 
     fun getHabitId(): Int {
-        val ids = setOf<Int>()
-        for (habit in habits) {
-            ids.plusElement(habit.id)
-        }
-
-        var id = 0
-        while (id in ids) {
-            id++
-        }
-        return id
+        // Obtain a unique ID
+        return (habits.maxOfOrNull { it.id } ?: 0) + 1
     }
 
     fun getHabitFromId(id: Int): Habit {
@@ -73,7 +66,7 @@ class UserDataViewModel : ViewModel() {
         Frequency.MONTHLY
     )
 
-    val statistics = arrayListOf(
+    var statistics = arrayListOf(
         Statistic("Current Streak"),
         Statistic("Longest Streak"),
         Statistic("Habits Created"),
@@ -82,6 +75,33 @@ class UserDataViewModel : ViewModel() {
         Statistic("Tasks Completed"),
         Statistic("Tasks Skipped"),
         Statistic("Tasks Failed"),
+    )
+
+    val achievements = arrayListOf(
+        Achievement("First Created Habit", "Create your first habit", 1) {
+            getStatisticValue("Habits Created")
+        },
+        Achievement("First Completed Task", "Complete your first task", 1) {
+            getStatisticValue("Tasks Completed")
+        },
+        Achievement("First Failed Task", "Fail your first task", 1) {
+            getStatisticValue("Tasks Failed")
+        },
+        Achievement("First Completed Habit", "Complete your first habit", 1) {
+            getStatisticValue("Habits Completed")
+        },
+        Achievement("Habit Beginner", "Complete 10 habits", 10) {
+            getStatisticValue("Habits Completed")
+        },
+        Achievement("Habit Master", "Complete 50 habits", 50) {
+            getStatisticValue("Habits Completed")
+        },
+        Achievement("Streak Beginner", "Reach a streak of 10", 10) {
+            getStatisticValue("Current Streak")
+        },
+        Achievement("Streak Master", "Reach a streak of 50", 50) {
+            getStatisticValue("Current Streak")
+        }
     )
 
     fun updateStatistic(description: String, value: Int, add: Boolean = true) {
@@ -105,6 +125,48 @@ class UserDataViewModel : ViewModel() {
         return 0
     }
 
+    fun getDaysSinceLastFailedTask(): Int {
+        val failedTasks = getFailedTasks()
+        if (failedTasks.isNotEmpty()) {
+            val lastFailedTask = failedTasks.first()
+            val today = LocalDateTime.now()
+            val lastFailedDate = LocalDateTime.of(lastFailedTask.date, lastFailedTask.endTime)
+            return ChronoUnit.DAYS.between(today, lastFailedDate).toInt()
+        }
+        return 0
+    }
+
+    fun getLongestStreak(): Int {
+        var longestStreak = 0
+        val failedTasks = getFailedTasks()
+        if (failedTasks.isNotEmpty()) {
+            for (i in 0 until failedTasks.size - 1) {
+                val daysBetween = ChronoUnit.DAYS.between(
+                    LocalDateTime.of(failedTasks[i].date, failedTasks[i].endTime),
+                    LocalDateTime.of(failedTasks[i + 1].date, failedTasks[i + 1].endTime)
+                ).toInt()
+                longestStreak = maxOf(longestStreak, daysBetween)
+            }
+        }
+        return longestStreak
+    }
+
+    fun updateStreak(context: Context) {
+        updateStatistic("Current Streak", getDaysSinceLastFailedTask())
+        updateStatistic("Longest Streak", getLongestStreak())
+        saveStatistics(context)
+    }
+
+    fun updateHabitCompletion(context: Context) {
+        updateStatistic("Tasks Completed", getCompletedTasks().size)
+        updateStatistic("Tasks Skipped", getFailedTasks().size)
+        updateStatistic("Tasks Failed", getFailedTasks().size)
+        updateStatistic("Habits Completed", habits.filter { it.getStatus() == HabitStatus.COMPLETED }.size)
+        updateStatistic("Habit Completion Rate", if (getStatisticValue("Habits Created") == 0) 0
+            else getStatisticValue("Habits Completed") * 100 / getStatisticValue("Habits Created"))
+        saveStatistics(context)
+    }
+
     val habitTemplates = arrayListOf(
         Habit() // TODO: Create habit templates
     )
@@ -119,6 +181,9 @@ class UserDataViewModel : ViewModel() {
         loadObjectList<Int>(context, "categoryColors.dat")?.let {
             categoryColors = it.map { color -> Color(color) } as ArrayList<Color>
         }
+        loadObjectList<Statistic>(context, "statistics.dat")?.let {
+            statistics = it
+        }
     }
 
     fun saveHabits(context: Context) {
@@ -128,6 +193,10 @@ class UserDataViewModel : ViewModel() {
     fun saveCategories(context: Context) {
         saveObjectList(context, categories, "categories.dat")
         saveObjectList(context, categoryColors.map { color -> color.toArgb() }, "categoryColors.dat")
+    }
+
+    fun saveStatistics(context: Context) {
+        saveObjectList(context, statistics, "statistics.dat")
     }
 
     fun getTasks(filter: Filter = Filter(), criterion: (Task) -> Boolean): List<Task> {

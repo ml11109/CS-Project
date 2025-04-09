@@ -219,6 +219,7 @@ fun HabitCard(
                         DropdownMenuItem(
                             text = { Text("Delete") },
                             onClick = {
+                                menuExpanded = false
                                 onHabitDelete()
                             }
                         )

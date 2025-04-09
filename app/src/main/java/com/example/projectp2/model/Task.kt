@@ -1,5 +1,6 @@
 package com.example.projectp2.model
 
+import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -13,11 +14,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -31,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -170,22 +176,41 @@ fun SimpleTaskCard(userDataViewModel: UserDataViewModel, task: Task, modifier: M
         }
 
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp)
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = " ${habit.title} (${task.index}/${habit.taskList.tasks.size})",
+                text = " ${habit.title}",
                 style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.weight(1f),
             )
+
+            if (task.isCompleted()) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = "Completed",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(16.dp)
+                )
+            } else if (task.isFailed()) {
+                Icon(
+                    imageVector = Icons.Default.Clear,
+                    contentDescription = "Failed",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
         }
     }
 }
 
 @Composable
-fun TaskCompletionDialog(userDataViewModel: UserDataViewModel, task: Task, onDismiss: () -> Unit, onConfirm: () -> Unit) {
+fun TaskCompletionDialog(userDataViewModel: UserDataViewModel, task: Task, onDismiss: () -> Unit) {
     val habit = userDataViewModel.getHabitFromId(task.habitId)
     var status by remember { mutableStateOf(task.status) }
     var notes by remember { mutableStateOf(task.notes) }
+    val context = LocalContext.current
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -203,6 +228,7 @@ fun TaskCompletionDialog(userDataViewModel: UserDataViewModel, task: Task, onDis
                     Checkbox(
                         checked = status == CompletionStatus.COMPLETED,
                         onCheckedChange = {
+                            if (!task.isCompletable(userDataViewModel)) return@Checkbox
                             status = if (it) CompletionStatus.COMPLETED else CompletionStatus.PENDING
                             task.status = status
                         }
@@ -226,6 +252,7 @@ fun TaskCompletionDialog(userDataViewModel: UserDataViewModel, task: Task, onDis
                         Checkbox(
                             checked = task.status == CompletionStatus.SKIPPED,
                             onCheckedChange = {
+                                if (!task.isCompletable(userDataViewModel)) return@Checkbox
                                 status = if (it) CompletionStatus.SKIPPED else CompletionStatus.PENDING
                                 task.status = CompletionStatus.SKIPPED
                             }
@@ -236,6 +263,7 @@ fun TaskCompletionDialog(userDataViewModel: UserDataViewModel, task: Task, onDis
                 Spacer(Modifier.height(16.dp))
                 OutlinedTextField(
                     value = notes,
+                    enabled = task.isCompletable(userDataViewModel),
                     onValueChange = { notes = it },
                     label = { Text("Notes") }
                 )
@@ -244,10 +272,13 @@ fun TaskCompletionDialog(userDataViewModel: UserDataViewModel, task: Task, onDis
 
         confirmButton = {
             Button(
+                enabled = task.isCompletable(userDataViewModel),
                 onClick = {
                     task.status = status
                     task.notes = notes
-                    onConfirm()
+                    userDataViewModel.updateHabitCompletion(context)
+                    userDataViewModel.saveHabits(context)
+                    Toast.makeText(context, "Task details saved", Toast.LENGTH_SHORT).show()
                     onDismiss()
                 }
             ) {

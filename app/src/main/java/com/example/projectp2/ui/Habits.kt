@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -50,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.projectp2.AddNewFAB
 import com.example.projectp2.AppScaffold
+import com.example.projectp2.composables.BasicAlertDialog
 import com.example.projectp2.composables.BasicExpandingSearchBar
 import com.example.projectp2.composables.DatePickerSwitch
 import com.example.projectp2.composables.DropdownTextBox
@@ -119,7 +121,7 @@ fun HabitsScreen(userDataViewModel: UserDataViewModel, navController: NavControl
                             Text("No habits found", style = MaterialTheme.typography.titleMedium, modifier = Modifier.alpha(0.5f).padding(top = 16.dp, bottom = 48.dp))
                         }
                     } else {
-                        HabitList(userDataViewModel, navController, filter, Modifier.fillMaxWidth().weight(1f))
+                        HabitList(userDataViewModel, navController, filter, Modifier.fillMaxWidth().weight(1f).padding(horizontal = 12.dp))
                     }
                 }
             }
@@ -181,7 +183,7 @@ fun FilterOptions(userDataViewModel: UserDataViewModel, filter: Filter, modifier
             modifier = Modifier.weight(1f)
         ) {
             Row(
-                modifier = Modifier.weight(1f).horizontalScroll(rememberScrollState()),
+                modifier = Modifier.weight(1f).horizontalScroll(rememberScrollState()).padding(horizontal = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -306,10 +308,8 @@ fun TaskColumn(userDataViewModel: UserDataViewModel, filter: Filter, modifier: M
                             userDataViewModel,
                             task,
                             Modifier.fillMaxWidth().clickable {
-                                if (task.isCompletable(userDataViewModel)) {
-                                    selectedTaskIndex = index
-                                    dialogShown = true
-                                }
+                                selectedTaskIndex = index
+                                dialogShown = true
                             }
                         )
                     }
@@ -334,14 +334,10 @@ fun TaskColumn(userDataViewModel: UserDataViewModel, filter: Filter, modifier: M
         if (dialogShown) {
             TaskCompletionDialog(
                 userDataViewModel,
-                tasks[selectedTaskIndex],
-                onDismiss = {
-                    updateTasks()
-                    dialogShown = false
-                },
+                tasks[selectedTaskIndex]
             ) {
-                userDataViewModel.saveHabits(context)
-                Toast.makeText(context, "Task details saved", Toast.LENGTH_SHORT).show()
+                updateTasks()
+                dialogShown = false
             }
         }
     }
@@ -400,6 +396,8 @@ fun TaskCalendar(userDataViewModel: UserDataViewModel, filter: Filter, modifier:
 @Composable
 fun HabitList(userDataViewModel: UserDataViewModel, navController: NavController, filter: Filter, modifier: Modifier = Modifier) {
     val habits = remember { mutableStateListOf<Habit>().apply { addAll(filter.filterHabits(userDataViewModel.habits)) } }
+    var showAlertDialog by remember { mutableStateOf(false) }
+    var selectedIndex by remember { mutableIntStateOf(0) }
     val context = LocalContext.current
 
     FadeColumn(
@@ -428,14 +426,26 @@ fun HabitList(userDataViewModel: UserDataViewModel, navController: NavController
                         navController.navigate("details/2/${userDataViewModel.habits.indexOf(habits[index])}")
                     },
                     onHabitDelete = {
-                        userDataViewModel.habits.remove(habits[index])
-                        habits.removeAt(index)
-                        userDataViewModel.saveHabits(context)
-                        Toast.makeText(context, "Habit deleted", Toast.LENGTH_SHORT).show()
+                        showAlertDialog = true
                     }
                 )
             }
             item { Spacer(Modifier) }
         }
+    }
+    
+    BasicAlertDialog(
+        showAlertDialog = showAlertDialog,
+        Icons.Default.Warning,
+        "Delete Habit",
+        "Are you sure you want to delete this habit?",
+        onDismissRequest = { showAlertDialog = false }
+    ) {
+        showAlertDialog = false
+        userDataViewModel.habits.remove(habits[selectedIndex])
+        habits.removeAt(selectedIndex)
+        userDataViewModel.updateHabitCompletion(context)
+        userDataViewModel.saveHabits(context)
+        Toast.makeText(context, "Habit deleted", Toast.LENGTH_SHORT).show()
     }
 }
