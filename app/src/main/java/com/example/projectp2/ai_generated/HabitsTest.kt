@@ -318,7 +318,7 @@ fun HabitCard1(
                 Text(
                     text = habit.description,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 Row(
@@ -329,7 +329,7 @@ fun HabitCard1(
                         imageVector = Icons.Default.DateRange,
                         contentDescription = null,
                         modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = MaterialTheme.colorScheme.onSurface
                     )
 
                     Spacer(modifier = Modifier.width(4.dp))
@@ -337,7 +337,7 @@ fun HabitCard1(
                     Text(
                         text = habit.frequency,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurface
                     )
 
                     Spacer(modifier = Modifier.width(8.dp))
@@ -346,7 +346,7 @@ fun HabitCard1(
                         imageVector = Icons.Outlined.Info,
                         contentDescription = null,
                         modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = MaterialTheme.colorScheme.onSurface
                     )
 
                     Spacer(modifier = Modifier.width(4.dp))
@@ -354,7 +354,7 @@ fun HabitCard1(
                     Text(
                         text = "${habit.streak} days",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
 
@@ -404,7 +404,7 @@ fun EmptyHabitsMessage() {
         Text(
             text = "No habits for this day",
             style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurface
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -412,7 +412,7 @@ fun EmptyHabitsMessage() {
         Text(
             text = "Tap the + button to create a new habit",
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
             textAlign = TextAlign.Center
         )
     }

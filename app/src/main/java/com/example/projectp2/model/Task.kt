@@ -26,6 +26,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -90,9 +91,7 @@ fun TaskCard(userDataViewModel: UserDataViewModel, task: Task, modifier: Modifie
     Card(
         modifier = modifier,
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceTint
-        )
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceBright)
     ) {
         Row(
             modifier = Modifier
@@ -136,7 +135,7 @@ fun TaskCard(userDataViewModel: UserDataViewModel, task: Task, modifier: Modifie
                     Text(
                         text = habit.description,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
 
@@ -148,7 +147,7 @@ fun TaskCard(userDataViewModel: UserDataViewModel, task: Task, modifier: Modifie
                                 + task.endTime.format(DateTimeFormatter.ofPattern("hh:mm a")) + ", "
                                 + task.date.format(DateTimeFormatter.ofPattern("dd/MM")),
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
             }
@@ -161,7 +160,7 @@ fun SimpleTaskCard(userDataViewModel: UserDataViewModel, task: Task, modifier: M
     val habit = userDataViewModel.getHabitFromId(task.habitId)
 
     Box(
-        modifier = modifier.shadow(2.dp).background(MaterialTheme.colorScheme.surfaceTint, shape = RoundedCornerShape(4.dp)),
+        modifier = modifier.shadow(2.dp).background(MaterialTheme.colorScheme.surfaceBright, shape = RoundedCornerShape(4.dp)),
     ) {
         Canvas(modifier = Modifier.matchParentSize()) {
             drawPath(
@@ -182,7 +181,7 @@ fun SimpleTaskCard(userDataViewModel: UserDataViewModel, task: Task, modifier: M
             Text(
                 text = " ${habit.title}",
                 style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.weight(1f),
             )
 
@@ -190,14 +189,14 @@ fun SimpleTaskCard(userDataViewModel: UserDataViewModel, task: Task, modifier: M
                 Icon(
                     imageVector = Icons.Default.Check,
                     contentDescription = "Completed",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(16.dp)
                 )
             } else if (task.isFailed()) {
                 Icon(
                     imageVector = Icons.Default.Clear,
                     contentDescription = "Failed",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(16.dp)
                 )
             }
@@ -230,7 +229,6 @@ fun TaskCompletionDialog(userDataViewModel: UserDataViewModel, task: Task, onDis
                         onCheckedChange = {
                             if (!task.isCompletable(userDataViewModel)) return@Checkbox
                             status = if (it) CompletionStatus.COMPLETED else CompletionStatus.PENDING
-                            task.status = status
                         }
                     )
                 }
@@ -250,11 +248,10 @@ fun TaskCompletionDialog(userDataViewModel: UserDataViewModel, task: Task, onDis
                         )
                         Spacer(Modifier.weight(1f))
                         Checkbox(
-                            checked = task.status == CompletionStatus.SKIPPED,
+                            checked = status == CompletionStatus.SKIPPED,
                             onCheckedChange = {
                                 if (!task.isCompletable(userDataViewModel)) return@Checkbox
                                 status = if (it) CompletionStatus.SKIPPED else CompletionStatus.PENDING
-                                task.status = CompletionStatus.SKIPPED
                             }
                         )
                     }
@@ -265,7 +262,13 @@ fun TaskCompletionDialog(userDataViewModel: UserDataViewModel, task: Task, onDis
                     value = notes,
                     enabled = task.isCompletable(userDataViewModel),
                     onValueChange = { notes = it },
-                    label = { Text("Notes") }
+                    label = { Text("Notes") },
+                    colors = TextFieldDefaults.colors(
+                        disabledTextColor = TextFieldDefaults.colors().unfocusedTextColor,
+                        disabledContainerColor = TextFieldDefaults.colors().unfocusedContainerColor,
+                        disabledLabelColor = TextFieldDefaults.colors().unfocusedLabelColor,
+                        disabledIndicatorColor = TextFieldDefaults.colors().unfocusedIndicatorColor
+                    )
                 )
             }
         },

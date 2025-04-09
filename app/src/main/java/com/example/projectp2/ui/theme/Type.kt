@@ -11,14 +11,20 @@ import androidx.compose.ui.unit.sp
 import com.example.projectp2.R
 
 val Roboto = FontFamily(
-    Font(R.font.roboto, FontWeight.Normal),
+    Font(R.font.roboto_regular, FontWeight.Normal),
     Font(R.font.roboto_medium, FontWeight.Medium),
     Font(R.font.roboto_bold, FontWeight.Bold)
 )
 
+val Rubik = FontFamily(
+    Font(R.font.rubik_regular, FontWeight.Normal),
+    Font(R.font.rubik_medium, FontWeight.Medium),
+    Font(R.font.rubik_bold, FontWeight.Bold)
+)
+
 object TypefaceTokens {
-    val Brand = Roboto
-    val Plain = Roboto
+    val Brand = Rubik
+    val Plain = Rubik
     val WeightBold = FontWeight.Bold
     val WeightMedium = FontWeight.Medium
     val WeightRegular = FontWeight.Normal
@@ -86,8 +92,8 @@ object TypeScaleTokens {
     val LabelSmallTracking = 0.5.sp
     val LabelSmallWeight = TypefaceTokens.WeightMedium
     val TitleLargeFont = TypefaceTokens.Brand
-    val TitleLargeLineHeight = 26.0.sp
-    val TitleLargeSize = 20.sp
+    val TitleLargeLineHeight = 24.0.sp
+    val TitleLargeSize = 18.sp
     val TitleLargeTracking = 0.0.sp
     val TitleLargeWeight = TypefaceTokens.WeightRegular
     val TitleMediumFont = TypefaceTokens.Plain

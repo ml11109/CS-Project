@@ -1,5 +1,7 @@
 package com.example.projectp2.model
 
+import androidx.compose.ui.graphics.Color
+
 // For filtering habits
 object HabitStatus {
     const val ALL = "All"
@@ -31,6 +33,20 @@ object Category {
     const val OTHER = "Other"
     const val NONE = "None"
 }
+
+val colors = arrayListOf(
+    Color.Green,
+    Color.Blue,
+    Color.Red,
+    Color.Gray,
+    Color.Yellow,
+    Color.Magenta,
+    Color.Cyan,
+    Color.Black,
+    Color.White,
+    Color.DarkGray,
+    Color.LightGray
+)
 
 object Frequency {
     const val ALL = "All"

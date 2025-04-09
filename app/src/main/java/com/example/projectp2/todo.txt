@@ -1,24 +1,20 @@
-todo:
-- Create updateTasks method in TaskList that preserves completed tasks
+Todo:
+- Transitions between screens
 
 - Create home page layout /
 - Create habits page layout /
 - Create details page layout /
-- Create stats & achievements page layout
+- Create stats & achievements page layout /
 
 - Basic habit creation /
 - Habit display and filtering /
 - Task display on habits page /
-- Completed & upcoming tasks display on home page /
 - More advanced habit creation options /
-- Habit creation templates
 
-- Stats graph and filtering
-- Habit stats list
-- Mini stats display on home page
-- Achievement display and filtering
-- Mini achievement display on home page
-- Come up with and implement achievements
+- Stats graph and filtering /
+- Habit stats list /
+- Achievement display /
+- Come up with and implement achievements /
 
 - Task notifications /
 - Add file I/O /
@@ -28,4 +24,7 @@ todo:
 - Create settings page
 - Create onboarding page
 - Create splash screen
-- Update fonts and colors
+
+Optional:
+- Create updateTasks method in TaskList that preserves completed tasks
+- Habit creation templates

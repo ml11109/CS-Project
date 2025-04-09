@@ -279,7 +279,7 @@ fun TestDetailsScreen(userDataViewModel: UserDataViewModel, navController: NavCo
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
                         )
                     ) {
                         Column(
@@ -292,7 +292,7 @@ fun TestDetailsScreen(userDataViewModel: UserDataViewModel, navController: NavCo
                             Icon(
                                 Icons.Default.Settings,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                                 modifier = Modifier.size(32.dp)
                             )
 
@@ -301,7 +301,7 @@ fun TestDetailsScreen(userDataViewModel: UserDataViewModel, navController: NavCo
                             Text(
                                 text = "Advanced settings will be added here",
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                             )
                         }
                     }

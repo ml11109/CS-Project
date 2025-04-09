@@ -41,7 +41,7 @@ import java.time.format.DateTimeFormatter
 
 @Composable
 fun HomeScreen(userDataViewModel: UserDataViewModel, navController: NavController, drawerState: DrawerState, scope: CoroutineScope) {
-    val boxModifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(8.dp))
+    val boxModifier = Modifier.background(MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(8.dp))
 
     val upcomingTasks = remember {
         mutableStateListOf<Task>().apply {
@@ -202,7 +202,11 @@ fun MiniScreen(userDataViewModel: UserDataViewModel, modifier: Modifier = Modifi
             }
 
             when (screenNum) {
-                1, 4 -> TaskColumn(userDataViewModel, Filter(), Modifier.fillMaxSize().padding(bottom = 8.dp))
+                1, 4 -> TaskColumn(
+                    userDataViewModel,
+                    Filter(),
+                    Modifier.fillMaxSize().padding(bottom = 8.dp)
+                )
                 2 -> StatsScreen(userDataViewModel, Modifier.fillMaxSize().padding(bottom = 8.dp), mini = true)
                 3, 0 -> AchievementsScreen(userDataViewModel, Modifier.fillMaxSize().padding(start = 32.dp, end = 32.dp, bottom = 8.dp), mini = true)
             }
@@ -232,7 +236,7 @@ fun MiniTaskColumn(title: String, tasks: SnapshotStateList<Task>, userDataViewMo
         }
 
         FadeColumn(
-            backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
+            backgroundColor = MaterialTheme.colorScheme.surface,
             fadeHeight = 8.dp,
             modifier = Modifier.fillMaxSize().padding(12.dp)
         ) {

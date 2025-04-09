@@ -64,7 +64,7 @@ DropdownTextField(listOf("Option 1", "Option 2", "Option 3")) { option = it }
 
 DropdownTextBox(
     listOf("Option 1", "Option 2", "Option 3"),
-    modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(4.dp)),
+    modifier = Modifier.background(MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(4.dp)),
 ) {
     option = it
 }
@@ -118,7 +118,7 @@ fun DropdownTextField(
     options: List<String>,
     initialOption: String = "Select an option",
     @SuppressLint("ModifierParameter") modifier: Modifier = Modifier,
-    textStyle: TextStyle = TextStyle.Default,
+    textStyle: TextStyle = LocalTextStyle.current,
     onValueChange: (String) -> Unit
 ) {
     DropdownSelector(options, initialOption, modifier, textStyle, onValueChange) { selectedText, expanded, contentModifier ->
@@ -139,7 +139,7 @@ fun DropdownTextBox(
     options: List<String>,
     initialOption: String = "Select an option",
     @SuppressLint("ModifierParameter") modifier: Modifier = Modifier,
-    textStyle: TextStyle = TextStyle.Default,
+    textStyle: TextStyle = LocalTextStyle.current,
     onValueChange: (String) -> Unit
 ) {
     DropdownSelector(options, initialOption, modifier, textStyle, onValueChange) { selectedText, expanded, contentModifier ->
@@ -168,7 +168,7 @@ ExpandingTextField { text = it }
 
 @Composable
 fun ExpandingTextField(
-    initialText: String = "",
+    text: String = "",
     hint: String = "Enter text...",
     @SuppressLint("ModifierParameter") modifier: Modifier = Modifier,
     width: Dp = 200.dp,
@@ -176,16 +176,16 @@ fun ExpandingTextField(
     textStyle: TextStyle = LocalTextStyle.current,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     isButtonOnRight: Boolean = true,
-    showHintIfEmpty: Boolean = false,
+    showHintIfEmpty: Boolean = true,
     onTextChanged: (String) -> Unit
 ) {
     val density = LocalDensity.current
     val textMeasurer = rememberTextMeasurer()
     val shouldShowHintIfEmpty = showHintIfEmpty && hint.isNotBlank()
     var minWidth by remember { mutableStateOf(
-        if (!shouldShowHintIfEmpty && initialText.isBlank()) 0.dp else {
+        if (!shouldShowHintIfEmpty && text.isBlank()) 0.dp else {
             (with(density) {
-                textMeasurer.measure(initialText.ifBlank { hint }, textStyle).size.width.toDp()
+                textMeasurer.measure(text.ifBlank { hint }, textStyle).size.width.toDp()
             } + 32.dp).coerceAtMost(width)
         }
     ) }
@@ -193,7 +193,6 @@ fun ExpandingTextField(
     var expanded by remember { mutableStateOf(false) }
     val currentWidth by animateDpAsState(if (expanded) width else minWidth)
     val alpha by animateFloatAsState(if (expanded) 1f else 0f)
-    var text by remember { mutableStateOf(initialText) }
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
 
@@ -243,7 +242,6 @@ fun ExpandingTextField(
             OutlinedTextField(
                 value = text,
                 onValueChange = {
-                    text = it
                     onTextChanged(it)
                     minWidth = if (text.isBlank() && !shouldShowHintIfEmpty) 0.dp else {
                         (with(density) {
@@ -353,7 +351,7 @@ fun BasicExpandingSearchBar(
             contentAlignment = Alignment.Center
         ) {
             Box(
-                modifier = Modifier.border(1.dp, MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(4.dp)).padding(4.dp),
+                modifier = Modifier.border(1.dp, MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(4.dp)).padding(4.dp),
             ) {
                 if (text.isEmpty()) {
                     BasicTextField(
@@ -433,8 +431,8 @@ fun OptionsRow(
                     onClick = { selected = option; onValueChange(option) },
                     label = { Text(option) },
                     colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer
+
                     )
                 )
             }

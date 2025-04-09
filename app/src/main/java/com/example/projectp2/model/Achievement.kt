@@ -34,7 +34,8 @@ data class Achievement(
 fun AchievementCard(achievement: Achievement, modifier: Modifier = Modifier) {
     Card(
         modifier = modifier,
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceBright)
     ) {
         Box(
             modifier = Modifier.fillMaxSize()
@@ -58,7 +59,7 @@ fun AchievementCard(achievement: Achievement, modifier: Modifier = Modifier) {
                         Text(
                             text = "${achievement.description} (${achievement.getProgress()}/${achievement.target})",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                     Spacer(modifier = Modifier.height(8.dp))

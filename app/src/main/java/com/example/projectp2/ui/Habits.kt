@@ -78,7 +78,7 @@ import java.time.LocalDate
 
 @Composable
 fun HabitsScreen(userDataViewModel: UserDataViewModel, navController: NavController, drawerState: DrawerState, scope: CoroutineScope) {
-    val boxModifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(8.dp))
+    val boxModifier = Modifier.background(MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(8.dp))
     val focusManager = LocalFocusManager.current
     var filter by remember { mutableStateOf(Filter()) }
 
@@ -187,7 +187,7 @@ fun FilterOptions(userDataViewModel: UserDataViewModel, filter: Filter, modifier
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                val dropdownModifier = Modifier.width(100.dp).background(MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(4.dp))
+                val dropdownModifier = Modifier.width(100.dp).background(MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(4.dp))
                 val textStyle = MaterialTheme.typography.bodySmall
 
                 DropdownTextBox(
@@ -259,7 +259,6 @@ fun TaskColumn(userDataViewModel: UserDataViewModel, filter: Filter, modifier: M
     var status by remember { mutableStateOf(TaskStatus.ONGOING) }
     var dialogShown by remember { mutableStateOf(false) }
     var selectedTaskIndex by remember { mutableIntStateOf(-1) }
-    val context = LocalContext.current
 
     fun updateTasks() {
         tasks.clear()
@@ -276,69 +275,69 @@ fun TaskColumn(userDataViewModel: UserDataViewModel, filter: Filter, modifier: M
     }
     updateTasks()
 
-    Column(
-        modifier = modifier
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.Center
     ) {
-        OptionsRow(
-            options = userDataViewModel.taskStatusTypes + arrayListOf(TaskStatus.ALL),
-            initialOption = TaskStatus.ONGOING,
-            backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
-            modifier = Modifier.fillMaxWidth().height(30.dp)
+        Column(
+            modifier = Modifier.fillMaxSize()
         ) {
-            status = it
-            updateTasks()
-        }
-        Spacer(Modifier.height(8.dp))
-
-        if (tasks.isNotEmpty()) {
-            FadeColumn(
-                backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
-                fadeHeight = 8.dp,
-                modifier = Modifier.fillMaxSize().padding(horizontal = 32.dp)
+            OptionsRow(
+                options = userDataViewModel.taskStatusTypes + arrayListOf(TaskStatus.ALL),
+                initialOption = TaskStatus.ONGOING,
+                backgroundColor = MaterialTheme.colorScheme.surface,
+                modifier = Modifier.fillMaxWidth().height(30.dp)
             ) {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    item { Spacer(Modifier) }
+                status = it
+                updateTasks()
+            }
+            Spacer(Modifier.height(8.dp))
 
-                    items(tasks.size) { index ->
-                        val task = tasks[index]
-                        TaskCard(
-                            userDataViewModel,
-                            task,
-                            Modifier.fillMaxWidth().clickable {
-                                selectedTaskIndex = index
-                                dialogShown = true
-                            }
-                        )
+            if (tasks.isNotEmpty()) {
+                FadeColumn(
+                    backgroundColor = MaterialTheme.colorScheme.surface,
+                    fadeHeight = 8.dp,
+                    modifier = Modifier.fillMaxSize().padding(horizontal = 32.dp)
+                ) {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        item { Spacer(Modifier) }
+
+                        items(tasks.size) { index ->
+                            val task = tasks[index]
+                            TaskCard(
+                                userDataViewModel,
+                                task,
+                                Modifier.fillMaxWidth().clickable {
+                                    selectedTaskIndex = index
+                                    dialogShown = true
+                                }
+                            )
+                        }
+                        item { Spacer(Modifier) }
                     }
-                    item { Spacer(Modifier) }
+                }
+            }
+
+            if (dialogShown) {
+                TaskCompletionDialog(
+                    userDataViewModel,
+                    tasks[selectedTaskIndex]
+                ) {
+                    updateTasks()
+                    dialogShown = false
                 }
             }
         }
 
-        else {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "No ${status.lowercase()} tasks found",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.alpha(0.5f)
-                )
-            }
-        }
-
-        if (dialogShown) {
-            TaskCompletionDialog(
-                userDataViewModel,
-                tasks[selectedTaskIndex]
-            ) {
-                updateTasks()
-                dialogShown = false
-            }
+        if (tasks.isEmpty()) {
+            Text(
+                text = "No ${status.lowercase()} tasks found",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.alpha(0.5f)
+            )
         }
     }
 }
@@ -433,7 +432,7 @@ fun HabitList(userDataViewModel: UserDataViewModel, navController: NavController
             item { Spacer(Modifier) }
         }
     }
-    
+
     BasicAlertDialog(
         showAlertDialog = showAlertDialog,
         Icons.Default.Warning,

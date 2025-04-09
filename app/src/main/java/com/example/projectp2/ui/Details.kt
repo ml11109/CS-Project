@@ -104,14 +104,14 @@ fun DetailsScreen(userDataViewModel: UserDataViewModel, navController: NavContro
         if (habit.frequency == Frequency.MONTHLY && !habit.taskList.daysOfMonth.values.contains(true)) valid = false
 
         if (habit.taskList.startDate.isAfter(habit.taskList.endDate)) valid = false
-        if (habit.taskList.startDate.isBefore(LocalDate.now())) valid = false
+        if (isNewHabit && habit.taskList.startDate.isBefore(LocalDate.now())) valid = false
         if (!isNewHabit && habit.taskList.startDate != oldHabit.taskList.startDate) valid = false
 
         for (index in habit.taskList.startTimes.indices) {
             if (habit.taskList.startTimes[index].isAfter(habit.taskList.endTimes[index])) {
                 valid = false; break
             }
-            if (habit.taskList.startDate == LocalDate.now() && habit.taskList.endTimes[index].isBefore(LocalTime.now())) {
+            if (isNewHabit && habit.taskList.startDate == LocalDate.now() && habit.taskList.endTimes[index].isBefore(LocalTime.now())) {
                 valid = false; break
             }
         }
@@ -257,7 +257,7 @@ fun TimingDetails(
             Spacer(Modifier.weight(1f))
         }
 
-        TimeSelector(habit, Modifier.fillMaxWidth().heightIn(0.dp, 400.dp)) { checkValidity() }
+        TimeSelector(habit, isNewHabit, Modifier.fillMaxWidth().heightIn(0.dp, 400.dp)) { checkValidity() }
 
         if (frequency == Frequency.WEEKLY) {
             Text("Days")
@@ -303,7 +303,7 @@ fun AdvancedSettingsBox(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
                 )
             ) {
                 Column(
@@ -393,10 +393,10 @@ fun DetailsButtons(
             onClick = {
                 navController.popBackStack()
             },
-            modifier = Modifier.width(100.dp),
+            modifier = Modifier.width(110.dp),
             shape = RoundedCornerShape(4.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.surfaceBright,
+                containerColor = MaterialTheme.colorScheme.surfaceDim,
                 contentColor = MaterialTheme.colorScheme.onSurface
             )
         ) {
@@ -417,7 +417,7 @@ fun DetailsButtons(
                 }
             },
             enabled = valid,
-            modifier = Modifier.width(100.dp),
+            modifier = Modifier.width(110.dp),
             shape = RoundedCornerShape(4.dp)
         ) {
             Text("Save", style = MaterialTheme.typography.titleMedium)
@@ -441,7 +441,7 @@ fun TitleTextField(habit: Habit, modifier: Modifier = Modifier, checkValidity: (
     BoxWithConstraints {
         val boxWithConstraintsScope = this
         ExpandingTextField(
-            initialText = habit.title,
+            text = habit.title,
             hint = "Enter title...",
             modifier = modifier,
             width = boxWithConstraintsScope.maxWidth - 44.dp,
@@ -492,12 +492,12 @@ fun FrequencySelector(userDataViewModel: UserDataViewModel, habit: Habit, modifi
 }
 
 @Composable
-fun TimeSelector(habit: Habit, modifier: Modifier = Modifier, checkValidity: () -> Unit) {
+fun TimeSelector(habit: Habit, isNewHabit: Boolean, modifier: Modifier = Modifier, checkValidity: () -> Unit) {
     val startTimes = remember { mutableStateListOf<LocalTime>().apply { addAll(habit.taskList.startTimes) } }
     val endTimes = remember { mutableStateListOf<LocalTime>().apply { addAll(habit.taskList.endTimes) } }
 
     fun invalid1(index: Int) = startTimes[index].isAfter(endTimes[index])
-    fun invalid2(index: Int) = habit.taskList.getFirstDate(habit) == LocalDate.now() && endTimes[index].isBefore(LocalTime.now())
+    fun invalid2(index: Int) = isNewHabit && habit.taskList.getFirstDate(habit) == LocalDate.now() && endTimes[index].isBefore(LocalTime.now())
 
     Column(
         modifier = modifier,
@@ -740,7 +740,7 @@ fun DateSelector(habit: Habit, oldHabit: Habit, isNewHabit: Boolean, modifier: M
             Text("Start date cannot be after end date", color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center)
         }
 
-        if (startDate.isBefore(LocalDate.now())) {
+        if (isNewHabit && startDate.isBefore(LocalDate.now())) {
             Text("Start date cannot be in the past", color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center)
         }
 

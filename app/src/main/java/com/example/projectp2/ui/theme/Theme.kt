@@ -14,14 +14,18 @@ private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
     secondary = PurpleGrey80,
     tertiary = Pink80,
-    surfaceTint = Grey90
+    surface = PaletteTokens.Neutral30,
+    surfaceBright = PaletteTokens.Neutral24,
+    surfaceDim = PaletteTokens.Neutral35
 )
 
 private val LightColorScheme = lightColorScheme(
     primary = Purple40,
     secondary = PurpleGrey40,
     tertiary = Pink40,
-    surfaceTint = Grey20
+    surface = PaletteTokens.Neutral90,
+    surfaceBright = PaletteTokens.Neutral87,
+    surfaceDim = PaletteTokens.Neutral92,
 
     /* Other default colors to override
     background = Color(0xFFFFFBFE),

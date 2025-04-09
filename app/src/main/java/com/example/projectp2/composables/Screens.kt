@@ -1,7 +1,6 @@
 package com.example.projectp2.composables
 
 import android.annotation.SuppressLint
-import android.graphics.drawable.Icon
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,6 +21,7 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
@@ -35,7 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 
 /*
@@ -54,9 +54,17 @@ TabScreen(
  */
 
 @Composable
-fun TabScreen(numTabs: Int, tabTitles: List<String> = emptyList(), tabIcons: List<@Composable () -> Unit> = emptyList(),
-              @SuppressLint("ModifierParameter") modifier: Modifier = Modifier, tabRowModifier: Modifier = Modifier, getTab: @Composable (Int) -> Unit) {
-    var tabIndex by remember { mutableIntStateOf(0) }
+fun TabScreen(
+    numTabs: Int,
+    initialTabIndex: Int = 0,
+    tabTitles: List<String> = emptyList(),
+    tabIcons: List<@Composable () -> Unit> = emptyList(),
+    @SuppressLint("ModifierParameter") modifier: Modifier = Modifier,
+    tabRowModifier: Modifier = Modifier,
+    textStyle: TextStyle = MaterialTheme.typography.titleSmall,
+    getTab: @Composable (tabIndex: Int) -> Unit
+) {
+    var tabIndex by remember { mutableIntStateOf(initialTabIndex) }
     val filledTabTitles = tabTitles + List((numTabs - tabTitles.size).coerceAtLeast(0)) { "Tab ${it + 1}" }
     val filledTabIcons = tabIcons + List<@Composable () -> Unit>((numTabs - tabIcons.size).coerceAtLeast(0)) { { Icon(Icons.Default.Info, null) } }
 
@@ -78,13 +86,13 @@ fun TabScreen(numTabs: Int, tabTitles: List<String> = emptyList(), tabIcons: Lis
                     )
                 } else if (tabIcons.isEmpty()) {
                     Tab(
-                        text = { Text(filledTabTitles[index]) },
+                        text = { Text(filledTabTitles[index], style = textStyle) },
                         selected = tabIndex == index,
                         onClick = { tabIndex = index }
                     )
                 } else {
                     Tab(
-                        text = { Text(filledTabTitles[index]) },
+                        text = { Text(filledTabTitles[index], style = textStyle) },
                         icon = { filledTabIcons[index]() },
                         selected = tabIndex == index,
                         onClick = { tabIndex = index }

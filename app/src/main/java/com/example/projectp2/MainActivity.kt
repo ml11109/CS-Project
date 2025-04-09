@@ -251,7 +251,7 @@ fun MenuItems(navController: NavController) {
         }
 
         IconButton(
-            onClick = { navController.navigate("settings/") }
+            onClick = { navController.navigate("settings/theme") }
         ) {
             Icon(Icons.Default.Settings, "Settings", tint = MaterialTheme.colorScheme.onPrimary)
         }
