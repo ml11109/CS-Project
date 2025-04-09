@@ -39,16 +39,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import java.io.Serializable
 import java.time.format.DateTimeFormatter
 
 data class Habit(
     var title: String = "",
+    var id: Int = -1,
     var description: String = "",
     var category: String = Category.NONE,
     var frequency: String = Frequency.NONE,
     var taskList: TaskList = TaskList(),
     var advancedSettings: AdvancedSettings = AdvancedSettings(),
-) {
+) : Serializable {
     fun getStatus(): String {
         return if (taskList.getProgress() == 1f) "Completed" else "Ongoing"
     }
@@ -56,6 +58,7 @@ data class Habit(
     fun copy(): Habit {
         val newHabit = Habit(
             title,
+            id,
             description,
             category,
             frequency,

@@ -34,19 +34,20 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import java.io.Serializable
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
 data class Task(
-    val habit: Habit,
+    val habitId: Int,
     val index: Int,
     val startTime: LocalTime,
     val endTime: LocalTime,
     val date: LocalDate,
     var status: String = CompletionStatus.PENDING,
     var notes: String = ""
-) {
+) : Serializable {
     fun isOngoing(): Boolean {
         return this.status == CompletionStatus.PENDING
                 && (this.date == LocalDate.now()
@@ -70,13 +71,16 @@ data class Task(
                     || (this.date == LocalDate.now() && this.endTime.isBefore(LocalTime.now())))
     }
 
-    fun isCompletable(): Boolean {
-        return this.isOngoing() || (this.isUpcoming() && this.habit.advancedSettings.allowAdvanceCompletion)
+    fun isCompletable(userDataViewModel: UserDataViewModel): Boolean {
+        val habit = userDataViewModel.getHabitFromId(this.habitId)
+        return this.isOngoing() || (this.isUpcoming() && habit.advancedSettings.allowAdvanceCompletion)
     }
 }
 
 @Composable
 fun TaskCard(userDataViewModel: UserDataViewModel, task: Task, modifier: Modifier = Modifier) {
+    val habit = userDataViewModel.getHabitFromId(task.habitId)
+
     Card(
         modifier = modifier,
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
@@ -103,12 +107,12 @@ fun TaskCard(userDataViewModel: UserDataViewModel, task: Task, modifier: Modifie
                         modifier = Modifier
                             .size(16.dp)
                             .clip(RoundedCornerShape(percent = 50))
-                            .background(userDataViewModel.getCategoryColor(task.habit.category))
+                            .background(userDataViewModel.getCategoryColor(habit.category))
                     )
                     Spacer(Modifier.width(8.dp))
 
                     Text(
-                        text = "${task.habit.title} (${task.index}/${task.habit.taskList.tasks.size})",
+                        text = "${habit.title} (${task.index}/${habit.taskList.tasks.size})",
                         modifier = Modifier.weight(1f),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold
@@ -122,9 +126,9 @@ fun TaskCard(userDataViewModel: UserDataViewModel, task: Task, modifier: Modifie
                     )
                 }
 
-                if (task.habit.description.isNotBlank()) {
+                if (habit.description.isNotBlank()) {
                     Text(
-                        text = task.habit.description,
+                        text = habit.description,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -148,6 +152,8 @@ fun TaskCard(userDataViewModel: UserDataViewModel, task: Task, modifier: Modifie
 
 @Composable
 fun SimpleTaskCard(userDataViewModel: UserDataViewModel, task: Task, modifier: Modifier = Modifier, cornerSize: Dp = 12.dp) {
+    val habit = userDataViewModel.getHabitFromId(task.habitId)
+
     Box(
         modifier = modifier.shadow(2.dp).background(MaterialTheme.colorScheme.surfaceTint, shape = RoundedCornerShape(4.dp)),
     ) {
@@ -159,7 +165,7 @@ fun SimpleTaskCard(userDataViewModel: UserDataViewModel, task: Task, modifier: M
                     lineTo(0f, cornerSize.toPx())
                     close()
                 },
-                color = userDataViewModel.getCategoryColor(task.habit.category)
+                color = userDataViewModel.getCategoryColor(habit.category)
             )
         }
 
@@ -167,7 +173,7 @@ fun SimpleTaskCard(userDataViewModel: UserDataViewModel, task: Task, modifier: M
             modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp)
         ) {
             Text(
-                text = " ${task.habit.title} (${task.index}/${task.habit.taskList.tasks.size})",
+                text = " ${habit.title} (${task.index}/${habit.taskList.tasks.size})",
                 style = MaterialTheme.typography.titleSmall,
                 modifier = Modifier.weight(1f),
             )
@@ -176,7 +182,8 @@ fun SimpleTaskCard(userDataViewModel: UserDataViewModel, task: Task, modifier: M
 }
 
 @Composable
-fun TaskCompletionDialog(task: Task, onDismiss: () -> Unit) {
+fun TaskCompletionDialog(userDataViewModel: UserDataViewModel, task: Task, onDismiss: () -> Unit, onConfirm: () -> Unit) {
+    val habit = userDataViewModel.getHabitFromId(task.habitId)
     var status by remember { mutableStateOf(task.status) }
     var notes by remember { mutableStateOf(task.notes) }
 
@@ -202,10 +209,10 @@ fun TaskCompletionDialog(task: Task, onDismiss: () -> Unit) {
                     )
                 }
 
-                val numExceptionsUsed = task.habit.taskList.getNumExceptionsUsed(task.date)
-                val numExceptions = task.habit.advancedSettings.numExceptionsPerMonth
+                val numExceptionsUsed = habit.taskList.getNumExceptionsUsed(task.date)
+                val numExceptions = habit.advancedSettings.numExceptionsPerMonth
 
-                if (task.habit.advancedSettings.allowExceptions && numExceptionsUsed < numExceptions
+                if (habit.advancedSettings.allowExceptions && numExceptionsUsed < numExceptions
                     && task.status != CompletionStatus.SKIPPED) {
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(start = 16.dp),
@@ -217,7 +224,7 @@ fun TaskCompletionDialog(task: Task, onDismiss: () -> Unit) {
                         )
                         Spacer(Modifier.weight(1f))
                         Checkbox(
-                            checked = status == CompletionStatus.SKIPPED,
+                            checked = task.status == CompletionStatus.SKIPPED,
                             onCheckedChange = {
                                 status = if (it) CompletionStatus.SKIPPED else CompletionStatus.PENDING
                                 task.status = CompletionStatus.SKIPPED
@@ -240,6 +247,7 @@ fun TaskCompletionDialog(task: Task, onDismiss: () -> Unit) {
                 onClick = {
                     task.status = status
                     task.notes = notes
+                    onConfirm()
                     onDismiss()
                 }
             ) {

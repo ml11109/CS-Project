@@ -1,22 +1,36 @@
 package com.example.projectp2.model
 
+import android.content.Context
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.ViewModel
-import java.time.LocalDate
+import com.example.projectp2.util.loadObjectList
+import com.example.projectp2.util.saveObjectList
 import java.time.LocalDateTime
-import java.time.LocalTime
 
 class UserDataViewModel : ViewModel() {
-    var habits = arrayListOf(
-        Habit("habit", "description", Category.PERSONAL, Frequency.DAILY,
-            TaskList(ArrayList(), LocalDate.now(), LocalDate.now().plusDays(5),
-                arrayListOf(LocalTime.now()), arrayListOf(LocalTime.now())
-            )
-        )
-    )
+    var habits = ArrayList<Habit>()
 
-    init {
-        habits[0].taskList.createTasks(habits[0])
+    fun getHabitId(): Int {
+        val ids = setOf<Int>()
+        for (habit in habits) {
+            ids.plusElement(habit.id)
+        }
+
+        var id = 0
+        while (id in ids) {
+            id++
+        }
+        return id
+    }
+
+    fun getHabitFromId(id: Int): Habit {
+        for (habit in habits) {
+            if (habit.id == id) {
+                return habit
+            }
+        }
+        return Habit()
     }
 
     val habitStatusTypes = arrayListOf(
@@ -31,14 +45,14 @@ class UserDataViewModel : ViewModel() {
         TaskStatus.FAILED
     )
 
-    val categories = arrayListOf(
+    var categories = arrayListOf(
         Category.PERSONAL,
         Category.WORK,
         Category.HEALTH,
         Category.OTHER
     )
 
-    val categoryColors = arrayListOf(
+    var categoryColors = arrayListOf(
         Color.Green,
         Color.Blue,
         Color.Red,
@@ -62,6 +76,27 @@ class UserDataViewModel : ViewModel() {
     val habitTemplates = arrayListOf(
         Habit() // TODO: Create habit templates
     )
+
+    fun loadData(context: Context) {
+        loadObjectList<Habit>(context, "habits.dat")?.let {
+            habits = it
+        }
+        loadObjectList<String>(context, "categories.dat")?.let {
+            categories = it
+        }
+        loadObjectList<Int>(context, "categoryColors.dat")?.let {
+            categoryColors = it.map { color -> Color(color) } as ArrayList<Color>
+        }
+    }
+
+    fun saveHabits(context: Context) {
+        saveObjectList(context, habits, "habits.dat")
+    }
+
+    fun saveCategories(context: Context) {
+        saveObjectList(context, categories, "categories.dat")
+        saveObjectList(context, categoryColors.map { color -> color.toArgb() }, "categoryColors.dat")
+    }
 
     fun getTasks(filter: Filter = Filter(), criterion: (Task) -> Boolean): List<Task> {
         val tasks = ArrayList<Task>()

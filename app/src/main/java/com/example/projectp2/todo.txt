@@ -9,7 +9,6 @@ todo:
 - Basic habit creation /
 - Habit display and filtering /
 - Task display on habits page /
-- Ongoing tasks display on home page
 - Completed & upcoming tasks display on home page /
 - More advanced habit creation options /
 - Habit creation templates
@@ -17,10 +16,12 @@ todo:
 - Stats graph and filtering
 - Habit stats list
 - Mini stats display on home page
-
 - Achievement display and filtering
 - Mini achievement display on home page
 - Come up with and implement achievements
+
+- Task notifications /
+- Add file I/O /
 
 - Come up with name
 - Create info page

@@ -44,6 +44,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -56,7 +57,11 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.projectp2.ai_generated.HabitTrackerScreen
 import com.example.projectp2.ai_generated.TestDetailsScreen
+import com.example.projectp2.model.AdvancedSettings
+import com.example.projectp2.model.Category
+import com.example.projectp2.model.Frequency
 import com.example.projectp2.model.Habit
+import com.example.projectp2.model.TaskList
 import com.example.projectp2.model.UserDataViewModel
 import com.example.projectp2.ui.DetailsScreen
 import com.example.projectp2.ui.HabitsScreen
@@ -67,8 +72,11 @@ import com.example.projectp2.ui.SettingsScreen
 import com.example.projectp2.ui.SplashScreen
 import com.example.projectp2.ui.StatsScreen
 import com.example.projectp2.ui.theme.ProjectP2Theme
+import com.example.projectp2.util.createNotificationChannel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.LocalTime
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -84,6 +92,22 @@ fun App() {
     val navController = rememberNavController()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+
+    // TODO: Remove this
+    val habit = Habit("habit", userDataViewModel.getHabitId(), "description", Category.PERSONAL, Frequency.DAILY,
+        TaskList(ArrayList(), LocalDate.now(), LocalDate.now().plusDays(5),
+            arrayListOf(LocalTime.now().plusMinutes(16)), arrayListOf(LocalTime.now().plusMinutes(17))
+        ),
+        AdvancedSettings()
+    )
+    userDataViewModel.habits.add(habit)
+    habit.taskList.createTasks(context, userDataViewModel, habit)
+
+    userDataViewModel.saveCategories(context)
+    userDataViewModel.loadData(context)
+
+    createNotificationChannel(context)
 
     ModalNavigationDrawer(
         drawerState = drawerState,

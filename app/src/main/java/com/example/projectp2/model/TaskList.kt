@@ -1,5 +1,8 @@
 package com.example.projectp2.model
 
+import android.content.Context
+import com.example.projectp2.util.scheduleTaskNotification
+import java.io.Serializable
 import java.time.LocalDate
 import java.time.LocalTime
 
@@ -19,8 +22,8 @@ data class TaskList(
             this[i] = false
         }
     }
-) {
-    fun createTasks(habit: Habit) {
+) : Serializable {
+    fun createTasks(context: Context, userDataViewModel: UserDataViewModel, habit: Habit) {
         tasks.clear()
 
         var index = 1
@@ -32,14 +35,18 @@ data class TaskList(
                 || (habit.frequency == Frequency.MONTHLY && daysOfMonth[date.dayOfMonth] == true)
             ) {
                 for (i in startTimes.indices) {
-                    tasks.add(Task(habit, index++, startTimes[i], endTimes[i], date))
+                    val task = Task(habit.id, index++, startTimes[i], endTimes[i], date)
+                    tasks.add(task)
+                    if (habit.advancedSettings.sendNotifications) {
+                        scheduleTaskNotification(context, userDataViewModel, task, 15)
+                    }
                 }
             }
             date = date.plusDays(1)
         }
     }
 
-    fun updateTasks(oldHabit: Habit, habit: Habit) {
+    fun updateTasks(context: Context, userDataViewModel: UserDataViewModel, oldHabit: Habit, habit: Habit) {
         // If frequency has changed, creates new tasks
         // Otherwise, preserves only old tasks that have passed and are still within the time period
         // and creates new ones to fill in the new time period
@@ -63,7 +70,7 @@ data class TaskList(
     fun copy(habit: Habit): TaskList {
         val newTasks = ArrayList<Task>()
         for (task in tasks) {
-            newTasks.add(task.copy(habit = habit))
+            newTasks.add(task.copy(habitId = habit.id))
         }
 
         val startTimes = ArrayList<LocalTime>()

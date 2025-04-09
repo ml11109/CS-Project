@@ -1,6 +1,7 @@
 package com.example.projectp2.ui
 
 import android.content.res.Configuration
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -11,14 +12,17 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -26,10 +30,12 @@ import com.example.projectp2.AddNewFAB
 import com.example.projectp2.AppScaffold
 import com.example.projectp2.R
 import com.example.projectp2.composables.ScreenSwitcher
+import com.example.projectp2.model.Filter
 import com.example.projectp2.model.UserDataViewModel
 import com.example.projectp2.model.Task
 import com.example.projectp2.model.TaskCard
 import com.example.projectp2.model.TaskCompletionDialog
+import com.example.projectp2.util.RequestNotificationPermission
 import kotlinx.coroutines.CoroutineScope
 import java.time.format.DateTimeFormatter
 
@@ -54,6 +60,8 @@ fun HomeScreen(userDataViewModel: UserDataViewModel, navController: NavControlle
         upcomingTasks.clear()
         upcomingTasks.addAll(userDataViewModel.getUpcomingTasks().take(10))
     }
+
+    RequestNotificationPermission {}
 
     BoxWithConstraints(
         modifier = Modifier.fillMaxSize()
@@ -159,7 +167,7 @@ fun InfoBar(userDataViewModel: UserDataViewModel, navController: NavController, 
                 )
 
                 1 -> Text(
-                    text = "Ongoing: ${ongoingTasks.first().habit.title} " +
+                    text = "Ongoing: ${userDataViewModel.getHabitFromId(ongoingTasks.first().habitId).title} " +
                             "by ${ongoingTasks.first().endTime.format(DateTimeFormatter.ofPattern("hh:mm a"))}",
                     style = MaterialTheme.typography.titleMedium
                 )
@@ -186,19 +194,12 @@ fun InfoBar(userDataViewModel: UserDataViewModel, navController: NavController, 
 @Composable
 fun MiniScreen(userDataViewModel: UserDataViewModel, modifier: Modifier = Modifier) {
     ScreenSwitcher(3, 0, modifier) { screenNum ->
-        val screenModifier = Modifier.fillMaxSize().padding(16.dp)
+        val screenModifier = Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 8.dp)
         when (screenNum) {
-            0 -> MiniTasksScreen(userDataViewModel, screenModifier)
+            0 -> TaskColumn(userDataViewModel, Filter(), screenModifier)
             1 -> MiniStatsScreen(userDataViewModel, screenModifier)
             2 -> MiniAchievementsScreen(userDataViewModel, screenModifier)
         }
-    }
-}
-
-@Composable
-fun MiniTasksScreen(userDataViewModel: UserDataViewModel, modifier: Modifier = Modifier) {
-    Box(modifier = modifier) {
-        Text("Tasks")
     }
 }
 
@@ -217,10 +218,11 @@ fun MiniAchievementsScreen(userDataViewModel: UserDataViewModel, modifier: Modif
 }
 
 @Composable
-fun MiniTaskColumn(title: String, tasks: List<Task>, userDataViewModel: UserDataViewModel, navController: NavController,
+fun MiniTaskColumn(title: String, tasks: SnapshotStateList<Task>, userDataViewModel: UserDataViewModel, navController: NavController,
                    modifier: Modifier = Modifier, updateTasks: () -> Unit) {
     var dialogShown by remember { mutableStateOf(false) }
-    var selectedTask by remember { mutableStateOf<Task?>(null) }
+    var selectedTaskIndex by remember { mutableIntStateOf(-1) }
+    val context = LocalContext.current
 
     Column(
         modifier = modifier
@@ -247,8 +249,8 @@ fun MiniTaskColumn(title: String, tasks: List<Task>, userDataViewModel: UserData
                     userDataViewModel,
                     task,
                     Modifier.fillMaxWidth().clickable {
-                        if (task.isCompletable()) {
-                            selectedTask = task
+                        if (task.isCompletable(userDataViewModel)) {
+                            selectedTaskIndex = index
                             dialogShown = true
                         }
                     }
@@ -267,9 +269,16 @@ fun MiniTaskColumn(title: String, tasks: List<Task>, userDataViewModel: UserData
         }
 
         if (dialogShown) {
-            TaskCompletionDialog(task = selectedTask!!) {
-                updateTasks()
-                dialogShown = false
+            TaskCompletionDialog(
+                userDataViewModel,
+                tasks[selectedTaskIndex],
+                onDismiss = {
+                    updateTasks()
+                    dialogShown = false
+                },
+            ) {
+                userDataViewModel.saveHabits(context)
+                Toast.makeText(context, "Task details saved", Toast.LENGTH_SHORT).show()
             }
         }
     }

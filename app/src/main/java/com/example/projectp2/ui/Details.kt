@@ -1,7 +1,9 @@
 package com.example.projectp2.ui
 
 import android.app.DatePickerDialog
+import android.content.Context
 import android.content.res.Configuration
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -90,6 +92,7 @@ fun DetailsScreen(userDataViewModel: UserDataViewModel, navController: NavContro
     var valid by remember { mutableStateOf(false) }
     var advancedSettings by remember { mutableStateOf(habit.advancedSettings.copy()) }
     val focusManager = LocalFocusManager.current
+    val context = LocalContext.current
 
     fun checkValidity() {
         valid = true
@@ -111,16 +114,21 @@ fun DetailsScreen(userDataViewModel: UserDataViewModel, navController: NavContro
         }
     }
 
-    fun saveHabit() {
+    fun saveHabit(context: Context) {
+        habit.id = userDataViewModel.getHabitId()
+        habit.advancedSettings = advancedSettings
+
         if (isNewHabit) {
             userDataViewModel.habits.add(habit)
-            habit.taskList.createTasks(habit)
+            habit.taskList.createTasks(context, userDataViewModel, habit)
         } else {
             userDataViewModel.habits[userDataViewModel.habits.indexOf(oldHabit)] = habit
-            habit.taskList.updateTasks(oldHabit, habit)
+            habit.taskList.updateTasks(context, userDataViewModel, oldHabit, habit)
         }
-        habit.advancedSettings = advancedSettings
+
         navController.popBackStack()
+        userDataViewModel.saveHabits(context)
+        Toast.makeText(context, "Habit saved", Toast.LENGTH_SHORT).show()
     }
 
     AppScaffold(
@@ -151,7 +159,7 @@ fun DetailsScreen(userDataViewModel: UserDataViewModel, navController: NavContro
                 HorizontalDivider(Modifier.fillMaxWidth().padding(start = 8.dp, end = 8.dp, top = 12.dp))
 
                 DetailsButtons(userDataViewModel, navController, habit, oldHabit, isNewHabit, valid,
-                    Modifier.fillMaxWidth().padding(end = 16.dp), { checkValidity() }, { saveHabit() })
+                    Modifier.fillMaxWidth().padding(end = 16.dp), { checkValidity() }, { saveHabit(context) })
             }
         }
 
@@ -180,7 +188,7 @@ fun DetailsScreen(userDataViewModel: UserDataViewModel, navController: NavContro
                 HorizontalDivider(Modifier.fillMaxWidth().padding(start = 8.dp, end = 8.dp, top = 12.dp))
 
                 DetailsButtons(userDataViewModel, navController, habit, oldHabit, isNewHabit, valid,
-                    Modifier.fillMaxWidth().padding(end = 16.dp), { checkValidity() }, { saveHabit() })
+                    Modifier.fillMaxWidth().padding(end = 16.dp), { checkValidity() }, { saveHabit(context) })
             }
         }
     }

@@ -1,6 +1,7 @@
 package com.example.projectp2.ui
 
 import android.content.res.Configuration
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -35,17 +36,18 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -59,13 +61,13 @@ import com.example.projectp2.composables.ScreenSwitcher
 import com.example.projectp2.model.Category
 import com.example.projectp2.model.Filter
 import com.example.projectp2.model.Frequency
+import com.example.projectp2.model.Habit
 import com.example.projectp2.model.HabitCard
 import com.example.projectp2.model.SimpleTaskCard
 import com.example.projectp2.model.HabitStatus
 import com.example.projectp2.model.Task
 import com.example.projectp2.model.TaskCard
 import com.example.projectp2.model.TaskCompletionDialog
-import com.example.projectp2.model.CompletionStatus
 import com.example.projectp2.model.TaskStatus
 import com.example.projectp2.model.UserDataViewModel
 import com.example.projectp2.model.Week
@@ -234,10 +236,12 @@ fun FilterOptions(userDataViewModel: UserDataViewModel, filter: Filter, modifier
 
 @Composable
 fun TaskScreen(userDataViewModel: UserDataViewModel, filter: Filter, modifier: Modifier = Modifier) {
+    val screenModifier = Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 8.dp)
+
     ScreenSwitcher(2, 0, modifier) {
         when (it) {
-            0 -> TaskColumn(userDataViewModel, filter, modifier = Modifier.fillMaxSize().padding(16.dp))
-            1 -> TaskCalendar(userDataViewModel, filter, modifier = Modifier.fillMaxSize().padding(16.dp))
+            0 -> TaskColumn(userDataViewModel, filter, screenModifier)
+            1 -> TaskCalendar(userDataViewModel, filter, screenModifier)
         }
     }
 }
@@ -247,7 +251,8 @@ fun TaskColumn(userDataViewModel: UserDataViewModel, filter: Filter, modifier: M
     val tasks = arrayListOf<Task>()
     var status by remember { mutableStateOf(TaskStatus.ONGOING) }
     var dialogShown by remember { mutableStateOf(false) }
-    var selectedTask by remember { mutableStateOf<Task?>(null) }
+    var selectedTaskIndex by remember { mutableIntStateOf(-1) }
+    val context = LocalContext.current
 
     fun updateTasks() {
         tasks.clear()
@@ -262,7 +267,6 @@ fun TaskColumn(userDataViewModel: UserDataViewModel, filter: Filter, modifier: M
             }
         )
     }
-
     updateTasks()
 
     Column(
@@ -276,10 +280,11 @@ fun TaskColumn(userDataViewModel: UserDataViewModel, filter: Filter, modifier: M
             status = it
             updateTasks()
         }
+        Spacer(Modifier.height(12.dp))
 
         if (tasks.isNotEmpty()) {
             LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(start = 24.dp, end = 24.dp, top = 24.dp),
+                modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(tasks.size) { index ->
@@ -288,8 +293,8 @@ fun TaskColumn(userDataViewModel: UserDataViewModel, filter: Filter, modifier: M
                         userDataViewModel,
                         task,
                         Modifier.fillMaxWidth().clickable {
-                            if (task.isCompletable()) {
-                                selectedTask = task
+                            if (task.isCompletable(userDataViewModel)) {
+                                selectedTaskIndex = index
                                 dialogShown = true
                             }
                         }
@@ -312,9 +317,16 @@ fun TaskColumn(userDataViewModel: UserDataViewModel, filter: Filter, modifier: M
         }
 
         if (dialogShown) {
-            TaskCompletionDialog(selectedTask!!) {
-                updateTasks()
-                dialogShown = false
+            TaskCompletionDialog(
+                userDataViewModel,
+                tasks[selectedTaskIndex],
+                onDismiss = {
+                    updateTasks()
+                    dialogShown = false
+                },
+            ) {
+                userDataViewModel.saveHabits(context)
+                Toast.makeText(context, "Task details saved", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -361,6 +373,7 @@ fun TaskCalendar(userDataViewModel: UserDataViewModel, filter: Filter, modifier:
                 Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = "Next")
             }
         }
+        Spacer(Modifier.height(12.dp))
 
         Row(
             modifier = Modifier.fillMaxSize().horizontalScroll(rememberScrollState())
@@ -396,7 +409,8 @@ fun TaskCalendar(userDataViewModel: UserDataViewModel, filter: Filter, modifier:
 
 @Composable
 fun HabitList(userDataViewModel: UserDataViewModel, navController: NavController, filter: Filter, modifier: Modifier = Modifier) {
-    val habits = filter.filterHabits(userDataViewModel.habits)
+    val habits = remember { mutableStateListOf<Habit>().apply { addAll(filter.filterHabits(userDataViewModel.habits)) } }
+    val context = LocalContext.current
 
     Box(
         modifier = modifier
@@ -422,6 +436,8 @@ fun HabitList(userDataViewModel: UserDataViewModel, navController: NavController
                     onHabitDelete = {
                         userDataViewModel.habits.remove(habits[index])
                         habits.removeAt(index)
+                        userDataViewModel.saveHabits(context)
+                        Toast.makeText(context, "Habit deleted", Toast.LENGTH_SHORT).show()
                     }
                 )
             }
