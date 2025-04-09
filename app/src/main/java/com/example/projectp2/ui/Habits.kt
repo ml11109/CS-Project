@@ -25,13 +25,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -56,8 +53,11 @@ import com.example.projectp2.AppScaffold
 import com.example.projectp2.composables.BasicExpandingSearchBar
 import com.example.projectp2.composables.DatePickerSwitch
 import com.example.projectp2.composables.DropdownTextBox
+import com.example.projectp2.composables.FadeColumn
+import com.example.projectp2.composables.FadeRow
 import com.example.projectp2.composables.OptionsRow
-import com.example.projectp2.composables.ScreenSwitcher
+import com.example.projectp2.composables.PagerSwitcher
+import com.example.projectp2.composables.WeekSelector
 import com.example.projectp2.model.Category
 import com.example.projectp2.model.Filter
 import com.example.projectp2.model.Frequency
@@ -73,7 +73,6 @@ import com.example.projectp2.model.UserDataViewModel
 import com.example.projectp2.model.Week
 import kotlinx.coroutines.CoroutineScope
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 @Composable
 fun HabitsScreen(userDataViewModel: UserDataViewModel, navController: NavController, drawerState: DrawerState, scope: CoroutineScope) {
@@ -108,7 +107,7 @@ fun HabitsScreen(userDataViewModel: UserDataViewModel, navController: NavControl
                     Spacer(Modifier.height(8.dp))
 
                     TaskScreen(userDataViewModel, filter, boxModifier.fillMaxWidth().height(maxHeight.times(0.4f)))
-                    HorizontalDivider(Modifier.fillMaxWidth().padding(12.dp))
+                    HorizontalDivider(Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 4.dp))
 
                     if (filter.filterHabits(userDataViewModel.habits).isEmpty()) {
                         Column(
@@ -176,33 +175,39 @@ fun FilterOptions(userDataViewModel: UserDataViewModel, filter: Filter, modifier
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            modifier = Modifier.weight(1f).horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
+        FadeRow(
+            backgroundColor = MaterialTheme.colorScheme.background,
+            fadeWidth = 8.dp,
+            modifier = Modifier.weight(1f)
         ) {
-            val dropdownModifier = Modifier.width(100.dp).background(MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(4.dp))
-            val textStyle = MaterialTheme.typography.bodySmall
-
-            DropdownTextBox(
-                arrayListOf(HabitStatus.ALL) + userDataViewModel.habitStatusTypes,
-                "Status", dropdownModifier, textStyle,
+            Row(
+                modifier = Modifier.weight(1f).horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                onFilterChange(filter.copy(status = it))
-            }
+                val dropdownModifier = Modifier.width(100.dp).background(MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(4.dp))
+                val textStyle = MaterialTheme.typography.bodySmall
 
-            DropdownTextBox(
-                arrayListOf(Category.ALL) + userDataViewModel.categories,
-                "Category", dropdownModifier, textStyle,
-            ) {
-                onFilterChange(filter.copy(category = it))
-            }
+                DropdownTextBox(
+                    arrayListOf(HabitStatus.ALL) + userDataViewModel.habitStatusTypes,
+                    "Status", dropdownModifier, textStyle,
+                ) {
+                    onFilterChange(filter.copy(status = it))
+                }
 
-            DropdownTextBox(
-                arrayListOf(Frequency.ALL) + userDataViewModel.frequencyTypes,
-                "Frequency", dropdownModifier, textStyle,
-            ) {
-                onFilterChange(filter.copy(frequency = it))
+                DropdownTextBox(
+                    arrayListOf(Category.ALL) + userDataViewModel.categories,
+                    "Category", dropdownModifier, textStyle,
+                ) {
+                    onFilterChange(filter.copy(category = it))
+                }
+
+                DropdownTextBox(
+                    arrayListOf(Frequency.ALL) + userDataViewModel.frequencyTypes,
+                    "Frequency", dropdownModifier, textStyle,
+                ) {
+                    onFilterChange(filter.copy(frequency = it))
+                }
             }
         }
 
@@ -236,12 +241,12 @@ fun FilterOptions(userDataViewModel: UserDataViewModel, filter: Filter, modifier
 
 @Composable
 fun TaskScreen(userDataViewModel: UserDataViewModel, filter: Filter, modifier: Modifier = Modifier) {
-    val screenModifier = Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 8.dp)
+    val screenModifier = Modifier.fillMaxSize().padding(16.dp)
 
-    ScreenSwitcher(2, 0, modifier) {
+    PagerSwitcher(2, modifier) {
         when (it) {
-            0 -> TaskColumn(userDataViewModel, filter, screenModifier)
-            1 -> TaskCalendar(userDataViewModel, filter, screenModifier)
+            1, 3 -> TaskColumn(userDataViewModel, filter, screenModifier)
+            2, 0 -> TaskCalendar(userDataViewModel, filter, screenModifier)
         }
     }
 }
@@ -275,30 +280,40 @@ fun TaskColumn(userDataViewModel: UserDataViewModel, filter: Filter, modifier: M
         OptionsRow(
             options = userDataViewModel.taskStatusTypes + arrayListOf(TaskStatus.ALL),
             initialOption = TaskStatus.ONGOING,
-            modifier = Modifier.fillMaxWidth()
+            backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
+            modifier = Modifier.fillMaxWidth().height(30.dp)
         ) {
             status = it
             updateTasks()
         }
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(8.dp))
 
         if (tasks.isNotEmpty()) {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+            FadeColumn(
+                backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
+                fadeHeight = 8.dp,
+                modifier = Modifier.fillMaxSize().padding(horizontal = 32.dp)
             ) {
-                items(tasks.size) { index ->
-                    val task = tasks[index]
-                    TaskCard(
-                        userDataViewModel,
-                        task,
-                        Modifier.fillMaxWidth().clickable {
-                            if (task.isCompletable(userDataViewModel)) {
-                                selectedTaskIndex = index
-                                dialogShown = true
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    item { Spacer(Modifier) }
+
+                    items(tasks.size) { index ->
+                        val task = tasks[index]
+                        TaskCard(
+                            userDataViewModel,
+                            task,
+                            Modifier.fillMaxWidth().clickable {
+                                if (task.isCompletable(userDataViewModel)) {
+                                    selectedTaskIndex = index
+                                    dialogShown = true
+                                }
                             }
-                        }
-                    )
+                        )
+                    }
+                    item { Spacer(Modifier) }
                 }
             }
         }
@@ -348,32 +363,7 @@ fun TaskCalendar(userDataViewModel: UserDataViewModel, filter: Filter, modifier:
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(
-                onClick = {
-                    firstDayOfWeek = firstDayOfWeek.minusWeeks(1)
-                    setTasks(firstDayOfWeek)
-                }
-            ) {
-                Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = "Previous")
-            }
-
-            Text(firstDayOfWeek.format(DateTimeFormatter.ofPattern("dd/MM")) + " - " +
-                        firstDayOfWeek.plusDays(6).format(DateTimeFormatter.ofPattern("dd/MM")))
-
-            IconButton(
-                onClick = {
-                    firstDayOfWeek = firstDayOfWeek.plusWeeks(1)
-                    setTasks(firstDayOfWeek)
-                }
-            ) {
-                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = "Next")
-            }
-        }
-        Spacer(Modifier.height(12.dp))
+        WeekSelector(firstDayOfWeek, Modifier.padding(bottom = 4.dp)) { firstDayOfWeek = it }
 
         Row(
             modifier = Modifier.fillMaxSize().horizontalScroll(rememberScrollState())
@@ -412,13 +402,17 @@ fun HabitList(userDataViewModel: UserDataViewModel, navController: NavController
     val habits = remember { mutableStateListOf<Habit>().apply { addAll(filter.filterHabits(userDataViewModel.habits)) } }
     val context = LocalContext.current
 
-    Box(
+    FadeColumn(
+        backgroundColor = MaterialTheme.colorScheme.background,
+        fadeHeight = 8.dp,
         modifier = modifier
     ) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            item { Spacer(Modifier) }
+
             items(habits.size) { index ->
                 HabitCard(
                     userDataViewModel,
@@ -441,6 +435,7 @@ fun HabitList(userDataViewModel: UserDataViewModel, navController: NavController
                     }
                 )
             }
+            item { Spacer(Modifier) }
         }
     }
 }

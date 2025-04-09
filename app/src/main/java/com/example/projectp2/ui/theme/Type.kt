@@ -86,8 +86,8 @@ object TypeScaleTokens {
     val LabelSmallTracking = 0.5.sp
     val LabelSmallWeight = TypefaceTokens.WeightMedium
     val TitleLargeFont = TypefaceTokens.Brand
-    val TitleLargeLineHeight = 28.0.sp
-    val TitleLargeSize = 22.sp
+    val TitleLargeLineHeight = 26.0.sp
+    val TitleLargeSize = 20.sp
     val TitleLargeTracking = 0.0.sp
     val TitleLargeWeight = TypefaceTokens.WeightRegular
     val TitleMediumFont = TypefaceTokens.Plain

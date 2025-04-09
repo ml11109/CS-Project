@@ -73,6 +73,38 @@ class UserDataViewModel : ViewModel() {
         Frequency.MONTHLY
     )
 
+    val statistics = arrayListOf(
+        Statistic("Current Streak"),
+        Statistic("Longest Streak"),
+        Statistic("Habits Created"),
+        Statistic("Habits Completed"),
+        Statistic("Habit Completion Rate"),
+        Statistic("Tasks Completed"),
+        Statistic("Tasks Skipped"),
+        Statistic("Tasks Failed"),
+    )
+
+    fun updateStatistic(description: String, value: Int, add: Boolean = true) {
+        for (statistic in statistics) {
+            if (statistic.description == description) {
+                if (add) {
+                    statistic.value += value
+                } else {
+                    statistic.value = value
+                }
+            }
+        }
+    }
+
+    fun getStatisticValue(description: String): Int {
+        for (statistic in statistics) {
+            if (statistic.description == description) {
+                return statistic.value
+            }
+        }
+        return 0
+    }
+
     val habitTemplates = arrayListOf(
         Habit() // TODO: Create habit templates
     )

@@ -1,6 +1,7 @@
 package com.example.projectp2.composables
 
 import android.annotation.SuppressLint
+import android.graphics.drawable.Icon
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,6 +22,7 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
@@ -52,16 +54,16 @@ TabScreen(
  */
 
 @Composable
-fun TabScreen(numTabs: Int, tabTitles: List<String> = emptyList(), tabIcons: List<ImageVector> = emptyList(),
-              @SuppressLint("ModifierParameter") modifier: Modifier = Modifier, getTab: @Composable (Int) -> Unit) {
+fun TabScreen(numTabs: Int, tabTitles: List<String> = emptyList(), tabIcons: List<@Composable () -> Unit> = emptyList(),
+              @SuppressLint("ModifierParameter") modifier: Modifier = Modifier, tabRowModifier: Modifier = Modifier, getTab: @Composable (Int) -> Unit) {
     var tabIndex by remember { mutableIntStateOf(0) }
     val filledTabTitles = tabTitles + List((numTabs - tabTitles.size).coerceAtLeast(0)) { "Tab ${it + 1}" }
-    val filledTabIcons = tabIcons + List((numTabs - tabIcons.size).coerceAtLeast(0)) { Icons.Default.Info }
+    val filledTabIcons = tabIcons + List<@Composable () -> Unit>((numTabs - tabIcons.size).coerceAtLeast(0)) { { Icon(Icons.Default.Info, null) } }
 
     Column(
         modifier = modifier
     ) {
-        TabRow(tabIndex) {
+        TabRow(tabIndex, tabRowModifier) {
             for (index in 0 until numTabs) {
                 if (tabTitles.isEmpty() && tabIcons.isEmpty()) {
                     Tab(
@@ -70,7 +72,7 @@ fun TabScreen(numTabs: Int, tabTitles: List<String> = emptyList(), tabIcons: Lis
                     )
                 } else if (tabTitles.isEmpty()) {
                     Tab(
-                        icon = { Icon(filledTabIcons[index], null) },
+                        icon = { filledTabIcons[index]() },
                         selected = tabIndex == index,
                         onClick = { tabIndex = index }
                     )
@@ -83,7 +85,7 @@ fun TabScreen(numTabs: Int, tabTitles: List<String> = emptyList(), tabIcons: Lis
                 } else {
                     Tab(
                         text = { Text(filledTabTitles[index]) },
-                        icon = { Icon(filledTabIcons[index], null) },
+                        icon = { filledTabIcons[index]() },
                         selected = tabIndex == index,
                         onClick = { tabIndex = index }
                     )
@@ -109,9 +111,9 @@ PagerScreen(2) { page ->
  */
 
 @Composable
-fun PagerScreen(numPages: Int, getPage: @Composable (page: Int) -> Unit) {
+fun PagerScreen(numPages: Int, modifier: Modifier = Modifier, getPage: @Composable (page: Int) -> Unit) {
     val pagerState = rememberPagerState(pageCount = { numPages })
-    HorizontalPager(state = pagerState) { page -> getPage(page) }
+    HorizontalPager(state = pagerState, modifier = modifier) { page -> getPage(page) }
     PageIndicator(pagerState)
 }
 

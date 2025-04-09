@@ -51,6 +51,7 @@ data class TaskList(
         // Otherwise, preserves only old tasks that have passed and are still within the time period
         // and creates new ones to fill in the new time period
         // Note that only new tasks will follow updated times
+        createTasks(context, userDataViewModel, habit)
     }
 
     fun getProgress(): Float {

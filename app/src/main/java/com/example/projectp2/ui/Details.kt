@@ -483,7 +483,7 @@ fun CategoryTextField(userDataViewModel: UserDataViewModel, navController: NavCo
 
 @Composable
 fun FrequencySelector(userDataViewModel: UserDataViewModel, habit: Habit, modifier: Modifier = Modifier, onFrequencyChange: (String) -> Unit = {}) {
-    OptionsRow(userDataViewModel.frequencyTypes, modifier, habit.frequency) { onFrequencyChange(it) }
+    OptionsRow(userDataViewModel.frequencyTypes, MaterialTheme.colorScheme.background, modifier, habit.frequency) { onFrequencyChange(it) }
 }
 
 @Composable

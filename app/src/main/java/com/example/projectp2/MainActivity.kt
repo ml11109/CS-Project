@@ -19,10 +19,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -57,11 +61,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.projectp2.ai_generated.HabitTrackerScreen
 import com.example.projectp2.ai_generated.TestDetailsScreen
-import com.example.projectp2.model.AdvancedSettings
-import com.example.projectp2.model.Category
-import com.example.projectp2.model.Frequency
 import com.example.projectp2.model.Habit
-import com.example.projectp2.model.TaskList
 import com.example.projectp2.model.UserDataViewModel
 import com.example.projectp2.ui.DetailsScreen
 import com.example.projectp2.ui.HabitsScreen
@@ -70,13 +70,11 @@ import com.example.projectp2.ui.InfoScreen
 import com.example.projectp2.ui.OnboardingScreen
 import com.example.projectp2.ui.SettingsScreen
 import com.example.projectp2.ui.SplashScreen
-import com.example.projectp2.ui.StatsScreen
+import com.example.projectp2.ui.StatsAndAchievementsScreen
 import com.example.projectp2.ui.theme.ProjectP2Theme
 import com.example.projectp2.util.createNotificationChannel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import java.time.LocalDate
-import java.time.LocalTime
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -94,19 +92,16 @@ fun App() {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    // TODO: Remove this
-    val habit = Habit("habit", userDataViewModel.getHabitId(), "description", Category.PERSONAL, Frequency.DAILY,
-        TaskList(ArrayList(), LocalDate.now(), LocalDate.now().plusDays(5),
-            arrayListOf(LocalTime.now().plusMinutes(16)), arrayListOf(LocalTime.now().plusMinutes(17))
-        ),
-        AdvancedSettings()
-    )
-    userDataViewModel.habits.add(habit)
-    habit.taskList.createTasks(context, userDataViewModel, habit)
+//    val habit = Habit("habit", userDataViewModel.getHabitId(), "description", Category.PERSONAL, Frequency.DAILY,
+//        TaskList(ArrayList(), LocalDate.now(), LocalDate.now().plusDays(5),
+//            arrayListOf(LocalTime.now().plusMinutes(16)), arrayListOf(LocalTime.now().plusMinutes(17))
+//        ),
+//        AdvancedSettings()
+//    )
+//    userDataViewModel.habits.add(habit)
+//    habit.taskList.createTasks(context, userDataViewModel, habit)
 
-    userDataViewModel.saveCategories(context)
     userDataViewModel.loadData(context)
-
     createNotificationChannel(context)
 
     ModalNavigationDrawer(
@@ -142,7 +137,7 @@ fun AppNavigation(userDataViewModel: UserDataViewModel, navController: NavHostCo
             DetailsScreen(userDataViewModel, navController, drawerState, scope, habitType, habit)
         }
 
-        composable("stats") { StatsScreen(userDataViewModel, navController, drawerState, scope) }
+        composable("stats") { StatsAndAchievementsScreen(userDataViewModel, navController, drawerState, scope) }
         composable("info") { InfoScreen(userDataViewModel, navController, drawerState, scope) }
 
         composable("settings/{setting}") { backStackEntry ->
@@ -204,6 +199,7 @@ fun AppScaffold(
 fun DrawerContent(navController: NavHostController, drawerState: DrawerState, scope: CoroutineScope) {
     val screenRoutes = listOf("home", "habits", "stats", "habits test", "details test")
     val screenTitles = listOf("Home", "Habits", "Statistics", "Habits (AI)", "Details (AI)")
+    val screenIcons = listOf(Icons.Default.Home, Icons.Default.Build, Icons.AutoMirrored.Filled.List, Icons.Default.Star, Icons.Default.Star)
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
 
     ModalDrawerSheet(
@@ -230,6 +226,7 @@ fun DrawerContent(navController: NavHostController, drawerState: DrawerState, sc
             for (index in screenRoutes.indices) {
                 currentRoute?.contains(screenRoutes[index])?.let {
                     NavigationDrawerItem(
+                        icon = { Icon(screenIcons[index], contentDescription = screenTitles[index]) },
                         label = { Text(text = screenTitles[index], fontSize = 18.sp) },
                         selected = it,
                         onClick = {

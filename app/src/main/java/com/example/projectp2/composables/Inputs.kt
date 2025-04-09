@@ -409,26 +409,36 @@ fun OutlinedExpandingSearchBar(
 @Composable
 fun OptionsRow(
     options: List<String>,
+    backgroundColor: Color,
     modifier: Modifier = Modifier,
     initialOption: String = "",
     onValueChange: (String) -> Unit
 ) {
     var selected by remember { mutableStateOf(initialOption) }
-    LazyRow(
-        modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically
+
+    FadeRow(
+        backgroundColor = backgroundColor,
+        fadeWidth = 8.dp,
+        modifier = modifier
     ) {
-        items(options.size) { index -> val option = options[index]
-            FilterChip(
-                selected = option == selected,
-                onClick = { selected = option; onValueChange(option) },
-                label = { Text(option) },
-                colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            item { Spacer(Modifier) }
+
+            items(options.size) { index -> val option = options[index]
+                FilterChip(
+                    selected = option == selected,
+                    onClick = { selected = option; onValueChange(option) },
+                    label = { Text(option) },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
                 )
-            )
+            }
+            item { Spacer(Modifier) }
         }
     }
 }

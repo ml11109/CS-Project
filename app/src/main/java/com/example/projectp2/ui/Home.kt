@@ -29,7 +29,8 @@ import androidx.navigation.NavController
 import com.example.projectp2.AddNewFAB
 import com.example.projectp2.AppScaffold
 import com.example.projectp2.R
-import com.example.projectp2.composables.ScreenSwitcher
+import com.example.projectp2.composables.FadeColumn
+import com.example.projectp2.composables.PagerSwitcher
 import com.example.projectp2.model.Filter
 import com.example.projectp2.model.UserDataViewModel
 import com.example.projectp2.model.Task
@@ -193,12 +194,12 @@ fun InfoBar(userDataViewModel: UserDataViewModel, navController: NavController, 
 
 @Composable
 fun MiniScreen(userDataViewModel: UserDataViewModel, modifier: Modifier = Modifier) {
-    ScreenSwitcher(3, 0, modifier) { screenNum ->
-        val screenModifier = Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 8.dp)
+    PagerSwitcher(3, modifier) { screenNum ->
+        val screenModifier = Modifier.fillMaxSize().padding(16.dp)
         when (screenNum) {
-            0 -> TaskColumn(userDataViewModel, Filter(), screenModifier)
-            1 -> MiniStatsScreen(userDataViewModel, screenModifier)
-            2 -> MiniAchievementsScreen(userDataViewModel, screenModifier)
+            1, 4 -> TaskColumn(userDataViewModel, Filter(), screenModifier)
+            2 -> MiniStatsScreen(userDataViewModel, screenModifier)
+            3, 0 -> MiniAchievementsScreen(userDataViewModel, screenModifier)
         }
     }
 }
@@ -228,7 +229,7 @@ fun MiniTaskColumn(title: String, tasks: SnapshotStateList<Task>, userDataViewMo
         modifier = modifier
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+            modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
@@ -238,33 +239,42 @@ fun MiniTaskColumn(title: String, tasks: SnapshotStateList<Task>, userDataViewMo
             )
         }
 
-        LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+        FadeColumn(
+            backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
+            fadeHeight = 8.dp,
+            modifier = Modifier.fillMaxSize().padding(8.dp)
         ) {
-            items(tasks.size) { index ->
-                val task = tasks[index]
-                TaskCard(
-                    userDataViewModel,
-                    task,
-                    Modifier.fillMaxWidth().clickable {
-                        if (task.isCompletable(userDataViewModel)) {
-                            selectedTaskIndex = index
-                            dialogShown = true
-                        }
-                    }
-                )
-            }
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                item { Spacer(Modifier) }
 
-            if (tasks.isNotEmpty()) {
-                item {
-                    Text(
-                        text = "See more",
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(8.dp).clickable { navController.navigate("habits") }
+                items(tasks.size) { index ->
+                    val task = tasks[index]
+                    TaskCard(
+                        userDataViewModel,
+                        task,
+                        Modifier.fillMaxWidth().clickable {
+                            if (task.isCompletable(userDataViewModel)) {
+                                selectedTaskIndex = index
+                                dialogShown = true
+                            }
+                        }
                     )
                 }
+
+                if (tasks.isNotEmpty()) {
+                    item {
+                        Text(
+                            text = "See more",
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(8.dp).clickable { navController.navigate("habits") }
+                        )
+                    }
+                }
+                item { Spacer(Modifier) }
             }
         }
 
