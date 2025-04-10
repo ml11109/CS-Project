@@ -427,6 +427,7 @@ fun HabitList(userDataViewModel: UserDataViewModel, navController: NavController
                     },
                     onHabitDelete = {
                         showAlertDialog = true
+                        selectedIndex = index
                     }
                 )
             }

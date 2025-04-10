@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -53,6 +54,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -114,7 +116,7 @@ fun AppNavigation(userDataViewModel: UserDataViewModel, navController: NavHostCo
             ProjectP2Theme(userDataViewModel.theme) {
                 SplashScreen(
                     onFinished = {
-                        val next = if (hasSeenOnboarding(context)) "home" else "onboarding"
+                        val next = "onboarding"//if (hasSeenOnboarding(context)) "home" else "onboarding"
                         navController.navigate(next) {
                             popUpTo("splash") { inclusive = true }
                         }
@@ -177,16 +179,11 @@ fun AppScaffold(
     content: @Composable (nestedScrollConnection: NestedScrollConnection) -> Unit
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
 
     Scaffold(
         modifier = Modifier.background(MaterialTheme.colorScheme.background),
 
-        floatingActionButton = {
-            if (currentRoute == "home" || currentRoute?.contains("habits") == true || currentRoute == "stats") {
-                floatingActionButton()
-            }
-        },
+        floatingActionButton = { floatingActionButton() },
 
         topBar = {
             TopAppBar(
@@ -242,7 +239,14 @@ fun DrawerContent(userDataViewModel: UserDataViewModel, navController: NavHostCo
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
                     }
                     Spacer(Modifier.width(16.dp))
+
                     Text(stringResource(id = R.string.app_name), fontSize = 22.sp, color = MaterialTheme.colorScheme.onBackground)
+
+                    Image(
+                        painter = painterResource(R.drawable.app_icon_nobg),
+                        contentDescription = "App icon",
+                        modifier = Modifier.size(64.dp)
+                    )
                 }
 
                 HorizontalDivider(Modifier.padding(vertical = 8.dp))
@@ -258,7 +262,7 @@ fun DrawerContent(userDataViewModel: UserDataViewModel, navController: NavHostCo
                                 navController.navigate(screenRoutes[index])
                             },
                             colors = NavigationDrawerItemDefaults.colors(
-                                selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                                selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
                             )
                         )
                     }

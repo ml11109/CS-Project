@@ -68,8 +68,7 @@ fun SettingsScreen(userDataViewModel: UserDataViewModel, navController: NavContr
         title = "Settings",
         navController = navController,
         drawerState = drawerState,
-        scope = scope,
-        floatingActionButton = { AddNewFAB(navController) }
+        scope = scope
     ) { nestedScrollConnection ->
         Column(
             modifier = Modifier

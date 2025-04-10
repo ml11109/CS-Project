@@ -55,7 +55,7 @@ data class TaskList(
     }
 
     fun getProgress(): Float {
-        return if (tasks.isEmpty()) 0f else tasks.filter { it.status in listOf(CompletionStatus.COMPLETED, CompletionStatus.SKIPPED) }.size.toFloat() / tasks.size.toFloat()
+        return if (tasks.isEmpty()) 0f else tasks.filter { it.isCompleted() || it.isFailed() }.size.toFloat() / tasks.size.toFloat()
     }
 
     fun getNumExceptionsUsed(date: LocalDate): Int {

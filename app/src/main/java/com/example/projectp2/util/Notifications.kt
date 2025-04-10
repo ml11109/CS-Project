@@ -61,7 +61,7 @@ class NotificationReceiver : BroadcastReceiver() {
         val notification = NotificationCompat.Builder(context, "reminder_channel")
             .setContentTitle("Upcoming task: $habitTitle")
             .setContentText(habitDescription)
-            .setSmallIcon(R.drawable.notification_icon)
+            .setSmallIcon(R.drawable.app_icon_nobg)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .build()
 
