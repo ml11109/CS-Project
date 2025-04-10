@@ -39,11 +39,8 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.projectp2.AddNewFAB
-import com.example.projectp2.AppScaffold
 import com.example.projectp2.R
 import com.example.projectp2.composables.BarChart
 import com.example.projectp2.composables.BarChartItem

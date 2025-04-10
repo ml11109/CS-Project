@@ -68,7 +68,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.text.isDigitsOnly
 import androidx.navigation.NavController
-import com.example.projectp2.AppScaffold
 import com.example.projectp2.composables.BasicAlertDialog
 import com.example.projectp2.composables.CustomDropdownSelector
 import com.example.projectp2.composables.ExpandingTextField

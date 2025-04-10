@@ -4,7 +4,6 @@ import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -53,18 +52,14 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.projectp2.AddNewFAB
-import com.example.projectp2.AppScaffold
 import com.example.projectp2.composables.ColorPickerDialog
 import com.example.projectp2.composables.ExpandingTextField
 import com.example.projectp2.composables.TabScreen
 import com.example.projectp2.model.UserDataViewModel
 import com.example.projectp2.model.colors
 import com.example.projectp2.ui.theme.AppTheme
-import com.example.projectp2.ui.theme.ProjectP2Theme
 import kotlinx.coroutines.CoroutineScope
 
 @Composable

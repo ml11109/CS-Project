@@ -1,4 +1,4 @@
-package com.example.projectp2
+package com.example.projectp2.ui
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -63,16 +63,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.projectp2.R
 import com.example.projectp2.model.Habit
 import com.example.projectp2.model.UserDataViewModel
-import com.example.projectp2.ui.DetailsScreen
-import com.example.projectp2.ui.HabitsScreen
-import com.example.projectp2.ui.HomeScreen
-import com.example.projectp2.ui.InfoScreen
-import com.example.projectp2.ui.OnboardingScreen
-import com.example.projectp2.ui.SettingsScreen
-import com.example.projectp2.ui.SplashScreen
-import com.example.projectp2.ui.StatisticsScreen
 import com.example.projectp2.ui.theme.ProjectP2Theme
 import com.example.projectp2.util.createNotificationChannel
 import com.example.projectp2.util.hasSeenOnboarding

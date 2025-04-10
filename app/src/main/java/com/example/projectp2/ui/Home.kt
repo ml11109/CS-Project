@@ -25,8 +25,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.projectp2.AddNewFAB
-import com.example.projectp2.AppScaffold
 import com.example.projectp2.R
 import com.example.projectp2.composables.FadeColumn
 import com.example.projectp2.composables.PagerSwitcher

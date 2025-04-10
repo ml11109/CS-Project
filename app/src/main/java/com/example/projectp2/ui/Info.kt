@@ -12,8 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
-import com.example.projectp2.AddNewFAB
-import com.example.projectp2.AppScaffold
 import com.example.projectp2.model.UserDataViewModel
 import com.example.projectp2.util.sendEmail
 import kotlinx.coroutines.CoroutineScope
