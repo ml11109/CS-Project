@@ -87,7 +87,8 @@ fun SettingsScreen(userDataViewModel: UserDataViewModel, navController: NavContr
                 initialTabIndex = if (setting == "categories") 1 else 0,
                 tabTitles = listOf("Theme", "Categories"),
                 modifier = Modifier.fillMaxWidth().weight(1f),
-                tabRowModifier = Modifier.fillMaxWidth().height(50.dp)
+                tabRowModifier = Modifier.fillMaxWidth().height(50.dp),
+                textStyle = MaterialTheme.typography.titleMedium
             ) {
                 val screenModifier = Modifier.fillMaxSize().padding(16.dp)
                 when (it) {
@@ -128,7 +129,7 @@ fun ThemeSettingsScreen(userDataViewModel: UserDataViewModel, navController: Nav
 
             items(themes.size) { index ->
                 Row(
-                    modifier.clickable { themeIndex = index }.padding(vertical = 4.dp),
+                    modifier.clickable { themeIndex = index },
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     RadioButton(
@@ -150,7 +151,7 @@ fun ThemeSettingsScreen(userDataViewModel: UserDataViewModel, navController: Nav
                 Column(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    HorizontalDivider(Modifier.fillMaxWidth().padding(horizontal = 16.dp))
+                    HorizontalDivider(Modifier.fillMaxWidth().padding(top = 16.dp))
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),

@@ -4,10 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
@@ -51,11 +48,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
@@ -70,8 +63,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.projectp2.ai_generated.HabitTrackerScreen
-import com.example.projectp2.ai_generated.TestDetailsScreen
 import com.example.projectp2.model.Habit
 import com.example.projectp2.model.UserDataViewModel
 import com.example.projectp2.ui.DetailsScreen
@@ -179,9 +170,6 @@ fun AppNavigation(userDataViewModel: UserDataViewModel, navController: NavHostCo
             val setting = backStackEntry.arguments?.getString("setting").toString()
             ProjectP2Theme(userDataViewModel.theme) { SettingsScreen(userDataViewModel, navController, drawerState, scope, setting) }
         }
-
-//        composable("habits test") { ProjectP2Theme(userDataViewModel.theme) { HabitTrackerScreen() } }
-//        composable("details test") { ProjectP2Theme(userDataViewModel.theme) { TestDetailsScreen(userDataViewModel, navController, Habit()) } }
     }
 }
 
