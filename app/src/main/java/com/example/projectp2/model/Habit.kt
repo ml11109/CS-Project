@@ -39,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import java.io.Serializable
 import java.time.format.DateTimeFormatter
@@ -175,9 +176,9 @@ fun HabitCard(
                         Spacer(modifier = Modifier.width(4.dp))
 
                         Text(
-                            text = habit.taskList.startDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                            text = habit.taskList.startDate.format(DateTimeFormatter.ofPattern("dd/MM/yy"))
                                     + " - "
-                                    + habit.taskList.endDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                                    + habit.taskList.endDate.format(DateTimeFormatter.ofPattern("dd/MM/yy")),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurface
                         )

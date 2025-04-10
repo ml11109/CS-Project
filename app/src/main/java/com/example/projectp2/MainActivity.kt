@@ -4,6 +4,12 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,13 +44,18 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
@@ -73,6 +84,8 @@ import com.example.projectp2.ui.SplashScreen
 import com.example.projectp2.ui.StatisticsScreen
 import com.example.projectp2.ui.theme.ProjectP2Theme
 import com.example.projectp2.util.createNotificationChannel
+import com.example.projectp2.util.hasSeenOnboarding
+import com.example.projectp2.util.setOnboardingSeen
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -80,26 +93,17 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContent { ProjectP2Theme { App() } }
+        setContent { AppEntry() }
     }
 }
 
 @Composable
-fun App() {
+fun AppEntry() {
     val userDataViewModel: UserDataViewModel = viewModel()
     val navController = rememberNavController()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-
-//    val habit = Habit("habit", userDataViewModel.getHabitId(), "description", Category.PERSONAL, Frequency.DAILY,
-//        TaskList(ArrayList(), LocalDate.now(), LocalDate.now().plusDays(5),
-//            arrayListOf(LocalTime.now().plusMinutes(16)), arrayListOf(LocalTime.now().plusMinutes(17))
-//        ),
-//        AdvancedSettings()
-//    )
-//    userDataViewModel.habits.add(habit)
-//    habit.taskList.createTasks(context, userDataViewModel, habit)
 
     userDataViewModel.loadData(context)
     userDataViewModel.updateStreak(context)
@@ -108,7 +112,7 @@ fun App() {
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
-            DrawerContent(navController, drawerState, scope)
+            DrawerContent(userDataViewModel, navController, drawerState, scope)
         }
     ) {
         AppNavigation(userDataViewModel, navController, drawerState, scope)
@@ -117,12 +121,43 @@ fun App() {
 
 @Composable
 fun AppNavigation(userDataViewModel: UserDataViewModel, navController: NavHostController, drawerState: DrawerState, scope: CoroutineScope) {
-    NavHost(navController, startDestination = "home") {
-        composable("splash") { SplashScreen(navController) }
-        composable("onboarding") { OnboardingScreen(navController) }
-        composable("home") { HomeScreen(userDataViewModel, navController, drawerState, scope) }
-        composable("habits") { HabitsScreen(userDataViewModel, navController, drawerState, scope) }
+    val context = LocalContext.current
 
+    NavHost(navController, startDestination = "splash") {
+        composable(
+            "splash"
+        ) {
+            ProjectP2Theme(userDataViewModel.theme) {
+                SplashScreen(
+                    onFinished = {
+                        val next = if (hasSeenOnboarding(context)) "home" else "onboarding"
+                        navController.navigate(next) {
+                            popUpTo("splash") { inclusive = true }
+                        }
+                    }
+                )
+            }
+        }
+
+        composable(
+            "onboarding",
+            enterTransition = { slideInHorizontally(initialOffsetX = { it }, animationSpec = tween(700)) },
+            exitTransition = { slideOutHorizontally(targetOffsetX = { -it }, animationSpec = tween(700)) }
+        ) {
+            ProjectP2Theme(userDataViewModel.theme) {
+                OnboardingScreen(
+                    onComplete = {
+                        setOnboardingSeen(context)
+                        navController.navigate("home") {
+                            popUpTo("onboarding") { inclusive = true }
+                        }
+                    }
+                )
+            }
+        }
+
+        composable("home") { ProjectP2Theme(userDataViewModel.theme) { HomeScreen(userDataViewModel, navController, drawerState, scope) } }
+        composable("habits") { ProjectP2Theme(userDataViewModel.theme) { HabitsScreen(userDataViewModel, navController, drawerState, scope) } }
         composable("details/{habitType}/{habitIndex}") { backStackEntry ->
             // 0 habitType means new habit, 1 means edit habit, 2 means copied habit, 3 means habit from template
             val habitType = backStackEntry.arguments?.getString("habitType")!!.toInt()
@@ -135,19 +170,18 @@ fun AppNavigation(userDataViewModel: UserDataViewModel, navController: NavHostCo
                 3 -> userDataViewModel.habitTemplates[habitIndex]
                 else -> Habit()
             }
-            DetailsScreen(userDataViewModel, navController, drawerState, scope, habitType, habit)
+            ProjectP2Theme(userDataViewModel.theme) { DetailsScreen(userDataViewModel, navController, drawerState, scope, habitType, habit) }
         }
+        composable("stats") { ProjectP2Theme(userDataViewModel.theme) { StatisticsScreen(userDataViewModel, navController, drawerState, scope) } }
 
-        composable("stats") { StatisticsScreen(userDataViewModel, navController, drawerState, scope) }
-        composable("info") { InfoScreen(userDataViewModel, navController, drawerState, scope) }
-
+        composable("info") { ProjectP2Theme(userDataViewModel.theme) { InfoScreen(userDataViewModel, navController, drawerState, scope) } }
         composable("settings/{setting}") { backStackEntry ->
             val setting = backStackEntry.arguments?.getString("setting").toString()
-            SettingsScreen(userDataViewModel, navController, drawerState, scope, setting)
+            ProjectP2Theme(userDataViewModel.theme) { SettingsScreen(userDataViewModel, navController, drawerState, scope, setting) }
         }
 
-        composable("habits test") { HabitTrackerScreen() }
-        composable("details test") { TestDetailsScreen(userDataViewModel, navController, Habit()) }
+//        composable("habits test") { ProjectP2Theme(userDataViewModel.theme) { HabitTrackerScreen() } }
+//        composable("details test") { ProjectP2Theme(userDataViewModel.theme) { TestDetailsScreen(userDataViewModel, navController, Habit()) } }
     }
 }
 
@@ -162,16 +196,21 @@ fun AppScaffold(
     content: @Composable (nestedScrollConnection: NestedScrollConnection) -> Unit
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
 
     Scaffold(
         modifier = Modifier.background(MaterialTheme.colorScheme.background),
 
-        floatingActionButton = floatingActionButton,
+        floatingActionButton = {
+            if (currentRoute == "home" || currentRoute?.contains("habits") == true || currentRoute == "stats") {
+                floatingActionButton()
+            }
+        },
 
         topBar = {
             TopAppBar(
                 title = {
-                    Text(title, color = MaterialTheme.colorScheme.onPrimary)
+                    Text(title, style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onPrimary)
                 },
 
                 navigationIcon = {
@@ -197,44 +236,51 @@ fun AppScaffold(
 }
 
 @Composable
-fun DrawerContent(navController: NavHostController, drawerState: DrawerState, scope: CoroutineScope) {
-    val screenRoutes = listOf("home", "habits", "stats", "habits test", "details test")
-    val screenTitles = listOf("Home", "Habits", "Statistics", "Habits (AI)", "Details (AI)")
+fun DrawerContent(userDataViewModel: UserDataViewModel, navController: NavHostController, drawerState: DrawerState, scope: CoroutineScope) {
+    val screenRoutes = listOf("home", "habits", "stats")
+    val screenTitles = listOf("Home", "Habits", "Statistics")
     val screenIcons = listOf(Icons.Default.Home, Icons.Default.Build, Icons.AutoMirrored.Filled.List, Icons.Default.Star, Icons.Default.Star)
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
 
-    ModalDrawerSheet(
-        modifier = Modifier.width(300.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp).verticalScroll(rememberScrollState())
+    ProjectP2Theme(userDataViewModel.theme) {
+        ModalDrawerSheet(
+            modifier = Modifier.width(300.dp),
+            drawerContainerColor = MaterialTheme.colorScheme.background,
+            drawerContentColor = MaterialTheme.colorScheme.onBackground
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+            Column(
+                modifier = Modifier.padding(16.dp).verticalScroll(rememberScrollState())
             ) {
-                IconButton(
-                    onClick = { scope.launch { drawerState.close() } }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                    IconButton(
+                        onClick = { scope.launch { drawerState.close() } }
+                    ) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                    }
+                    Spacer(Modifier.width(16.dp))
+                    Text(stringResource(id = R.string.app_name), fontSize = 22.sp, color = MaterialTheme.colorScheme.onBackground)
                 }
-                Spacer(Modifier.width(16.dp))
-                Text(stringResource(id = R.string.app_name), fontSize = 22.sp)
-            }
 
-            HorizontalDivider(Modifier.padding(vertical = 8.dp))
+                HorizontalDivider(Modifier.padding(vertical = 8.dp))
 
-            for (index in screenRoutes.indices) {
-                currentRoute?.contains(screenRoutes[index])?.let {
-                    NavigationDrawerItem(
-                        icon = { Icon(screenIcons[index], contentDescription = screenTitles[index]) },
-                        label = { Text(text = screenTitles[index], fontSize = 18.sp, modifier = Modifier.padding(start = 16.dp)) },
-                        selected = it,
-                        onClick = {
-                            scope.launch { drawerState.close() }
-                            navController.navigate(screenRoutes[index])
-                        }
-                    )
+                for (index in screenRoutes.indices) {
+                    currentRoute?.contains(screenRoutes[index])?.let {
+                        NavigationDrawerItem(
+                            icon = { Icon(screenIcons[index], contentDescription = screenTitles[index]) },
+                            label = { Text(text = screenTitles[index], fontSize = 18.sp, modifier = Modifier.padding(start = 16.dp)) },
+                            selected = it,
+                            onClick = {
+                                scope.launch { drawerState.close() }
+                                navController.navigate(screenRoutes[index])
+                            },
+                            colors = NavigationDrawerItemDefaults.colors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                            )
+                        )
+                    }
                 }
             }
         }
@@ -243,15 +289,17 @@ fun DrawerContent(navController: NavHostController, drawerState: DrawerState, sc
 
 @Composable
 fun MenuItems(navController: NavController) {
+    val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
+
     Row {
         IconButton(
-            onClick = { navController.navigate("info") }
+            onClick = { if (currentRoute != "info") navController.navigate("info") }
         ) {
             Icon(Icons.Default.Info, "Info", tint = MaterialTheme.colorScheme.onPrimary)
         }
 
         IconButton(
-            onClick = { navController.navigate("settings/theme") }
+            onClick = { if (!currentRoute!!.contains("settings")) navController.navigate("settings/theme") }
         ) {
             Icon(Icons.Default.Settings, "Settings", tint = MaterialTheme.colorScheme.onPrimary)
         }

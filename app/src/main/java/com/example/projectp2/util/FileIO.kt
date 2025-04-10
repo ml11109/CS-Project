@@ -1,10 +1,21 @@
 package com.example.projectp2.util
 
 import android.content.Context
+import java.io.File
 import java.io.IOException
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.io.Serializable
+
+fun saveTextToFile(context: Context, filename: String, text: String) {
+    val file = File(context.filesDir, filename)
+    file.writeText(text)
+}
+
+fun loadTextFromFile(context: Context, filename: String): String? {
+    val file = File(context.filesDir, filename)
+    return if (file.exists()) file.readText() else null
+}
 
 fun <T> saveObjectList(context: Context, list: List<T>, fileName: String) {
     try {

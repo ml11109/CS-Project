@@ -13,9 +13,6 @@ val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
 val Grey40 = Color(0xFF838383)
 
-val Grey20 = Color(0xFFDCD2DC)
-val Green = Color(0xFF00FF00)
-
 object PaletteTokens {
     val Black = Color(red = 0, green = 0, blue = 0)
     val Error0 = Color(red = 0, green = 0, blue = 0)

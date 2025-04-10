@@ -12,20 +12,20 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import com.example.projectp2.R
 import com.example.projectp2.composables.PagerScreen
 
 @Composable
-fun OnboardingScreen(navController: NavController) {
+fun OnboardingScreen(onComplete: () -> Unit) {
     PagerScreen(2) { page ->
         when (page) {
             0 -> { Page1() }
-            1 -> { Page2(navController) }
+            1 -> { Page2(onComplete) }
             // Add more pages here
         }
     }
@@ -38,7 +38,7 @@ fun Page1() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Image(painterResource(R.drawable.sample_image), contentDescription = null)
+        Image(painterResource(R.drawable.notification_icon), contentDescription = null)
         Spacer(Modifier.size(32.dp))
         Text(
             text = "", // Insert text here
@@ -49,7 +49,9 @@ fun Page1() {
 }
 
 @Composable
-fun Page2(navController: NavController) {
+fun Page2(onComplete: () -> Unit) {
+    val context = LocalContext.current
+
     Column(
         modifier = Modifier.padding(32.dp).fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -62,11 +64,7 @@ fun Page2(navController: NavController) {
         )
         Spacer(Modifier.size(24.dp))
         Button(
-            onClick = {
-                navController.navigate("main") {
-                    popUpTo("onboarding") { inclusive = true }
-                }
-            }
+            onClick = onComplete
         ) { Text("Continue") }
     }
 }

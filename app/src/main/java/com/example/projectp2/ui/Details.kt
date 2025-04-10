@@ -124,13 +124,13 @@ fun DetailsScreen(userDataViewModel: UserDataViewModel, navController: NavContro
         if (isNewHabit) {
             userDataViewModel.habits.add(habit)
             habit.taskList.createTasks(context, userDataViewModel, habit)
+            userDataViewModel.updateStatistic("Habits Created", 1, add = true)
         } else {
             userDataViewModel.habits[userDataViewModel.habits.indexOf(oldHabit)] = habit
             habit.taskList.updateTasks(context, userDataViewModel, oldHabit, habit)
         }
 
         navController.popBackStack()
-        userDataViewModel.updateStatistic("Habits Created", 1, add = true)
         userDataViewModel.updateHabitCompletion(context)
         userDataViewModel.saveHabits(context)
         Toast.makeText(context, "Habit saved", Toast.LENGTH_SHORT).show()
@@ -444,7 +444,9 @@ fun TitleTextField(habit: Habit, modifier: Modifier = Modifier, checkValidity: (
             text = habit.title,
             hint = "Enter title...",
             modifier = modifier,
+            textStyle = MaterialTheme.typography.headlineSmall,
             width = boxWithConstraintsScope.maxWidth - 44.dp,
+            height = 72.dp,
             keyboardOptions = KeyboardOptions(
                 imeAction = ImeAction.Done,
                 capitalization = KeyboardCapitalization.Sentences

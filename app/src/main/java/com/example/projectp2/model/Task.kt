@@ -39,6 +39,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import java.io.Serializable
@@ -102,7 +103,8 @@ fun TaskCard(userDataViewModel: UserDataViewModel, task: Task, modifier: Modifie
             // Task details
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -120,7 +122,8 @@ fun TaskCard(userDataViewModel: UserDataViewModel, task: Task, modifier: Modifie
                         text = "${habit.title} (${task.index}/${habit.taskList.tasks.size})",
                         modifier = Modifier.weight(1f),
                         style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center
                     )
                     Spacer(Modifier.width(8.dp))
 
@@ -128,14 +131,6 @@ fun TaskCard(userDataViewModel: UserDataViewModel, task: Task, modifier: Modifie
                         modifier = Modifier.size(20.dp),
                         checked = task.status == CompletionStatus.COMPLETED,
                         onCheckedChange = null
-                    )
-                }
-
-                if (habit.description.isNotBlank()) {
-                    Text(
-                        text = habit.description,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
 
@@ -147,7 +142,8 @@ fun TaskCard(userDataViewModel: UserDataViewModel, task: Task, modifier: Modifie
                                 + task.endTime.format(DateTimeFormatter.ofPattern("hh:mm a")) + ", "
                                 + task.date.format(DateTimeFormatter.ofPattern("dd/MM")),
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
+                        textAlign = TextAlign.Center
                     )
                 }
             }

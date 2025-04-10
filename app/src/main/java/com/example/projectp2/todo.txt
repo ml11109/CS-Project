@@ -19,11 +19,11 @@ Todo:
 - Task notifications /
 - Add file I/O /
 
-- Come up with name
+- Come up with name /
 - Create info page
-- Create settings page
+- Create settings page /
 - Create onboarding page
-- Create splash screen
+- Create splash screen /
 
 Optional:
 - Create updateTasks method in TaskList that preserves completed tasks

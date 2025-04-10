@@ -4,12 +4,17 @@ import android.content.Context
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.ViewModel
+import com.example.projectp2.ui.theme.AppTheme
 import com.example.projectp2.util.loadObjectList
+import com.example.projectp2.util.loadTextFromFile
 import com.example.projectp2.util.saveObjectList
+import com.example.projectp2.util.saveTextToFile
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
 class UserDataViewModel : ViewModel() {
+    var theme: AppTheme = AppTheme.System
+
     var habits = ArrayList<Habit>()
 
     fun getHabitId(): Int {
@@ -172,6 +177,9 @@ class UserDataViewModel : ViewModel() {
     )
 
     fun loadData(context: Context) {
+        loadTextFromFile(context, "theme.dat")?.let {
+            theme = AppTheme.valueOf(it)
+        }
         loadObjectList<Habit>(context, "habits.dat")?.let {
             habits = it
         }
@@ -184,6 +192,10 @@ class UserDataViewModel : ViewModel() {
         loadObjectList<Statistic>(context, "statistics.dat")?.let {
             statistics = it
         }
+    }
+
+    fun saveTheme(context: Context) {
+        saveTextToFile(context, "theme.dat", theme.name)
     }
 
     fun saveHabits(context: Context) {

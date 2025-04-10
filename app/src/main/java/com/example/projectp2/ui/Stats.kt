@@ -175,11 +175,11 @@ fun StatsScreen(userDataViewModel: UserDataViewModel, modifier: Modifier = Modif
     ) {
         Column(
             modifier = Modifier
-                .background(MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(8.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(8.dp))
                 .padding(horizontal = 32.dp, vertical = if (mini) 0.dp else 16.dp)
         ) {
             FadeColumn(
-                backgroundColor = MaterialTheme.colorScheme.surface,
+                backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
                 fadeHeight = if (mini) 12.dp else 16.dp,
                 modifier = Modifier
             ) {
@@ -226,7 +226,7 @@ fun AchievementsScreen(userDataViewModel: UserDataViewModel, modifier: Modifier 
     val achievements = userDataViewModel.achievements
 
     FadeColumn(
-        backgroundColor = MaterialTheme.colorScheme.surface,
+        backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
         fadeHeight = if (mini) 8.dp else 0.dp,
         modifier = modifier
     ) {

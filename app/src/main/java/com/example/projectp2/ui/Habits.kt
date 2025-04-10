@@ -394,10 +394,13 @@ fun TaskCalendar(userDataViewModel: UserDataViewModel, filter: Filter, modifier:
 
 @Composable
 fun HabitList(userDataViewModel: UserDataViewModel, navController: NavController, filter: Filter, modifier: Modifier = Modifier) {
-    val habits = remember { mutableStateListOf<Habit>().apply { addAll(filter.filterHabits(userDataViewModel.habits)) } }
+    val habits = remember { mutableStateListOf<Habit>() }
     var showAlertDialog by remember { mutableStateOf(false) }
     var selectedIndex by remember { mutableIntStateOf(0) }
     val context = LocalContext.current
+
+    habits.clear()
+    habits.apply { addAll(filter.filterHabits(userDataViewModel.habits)) }
 
     FadeColumn(
         backgroundColor = MaterialTheme.colorScheme.background,
@@ -405,7 +408,7 @@ fun HabitList(userDataViewModel: UserDataViewModel, navController: NavController
         modifier = modifier
     ) {
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().padding(4.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             item { Spacer(Modifier) }

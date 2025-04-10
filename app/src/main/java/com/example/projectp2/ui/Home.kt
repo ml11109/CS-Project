@@ -154,7 +154,8 @@ fun InfoBar(userDataViewModel: UserDataViewModel, navController: NavController, 
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceBright)
     ) {
         Box(
             modifier = Modifier.fillMaxSize().padding(8.dp),
