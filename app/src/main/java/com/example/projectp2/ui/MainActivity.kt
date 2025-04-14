@@ -116,7 +116,7 @@ fun AppNavigation(userDataViewModel: UserDataViewModel, navController: NavHostCo
             ProjectP2Theme(userDataViewModel.theme) {
                 SplashScreen(
                     onFinished = {
-                        val next = "onboarding"//if (hasSeenOnboarding(context)) "home" else "onboarding"
+                        val next = if (hasSeenOnboarding(context)) "home" else "onboarding"
                         navController.navigate(next) {
                             popUpTo("splash") { inclusive = true }
                         }
